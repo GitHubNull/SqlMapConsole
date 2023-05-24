@@ -2,7 +2,10 @@ package ui.panel;
 
 import burp.IHttpRequestResponse;
 import entities.ScanTask;
-import entities.ScanTaskArgs;
+import entities.ScanTaskOptionsCommandLine;
+import models.ScanTaskTableModel;
+import sqlmapApi.SqlMapApi;
+import sqlmapApi.SqlMapApiClient;
 import ui.panel.subPanel.GlobalConfig;
 import ui.panel.subPanel.SqlMapServiceTabPanel;
 import ui.panel.subPanel.TaskHistory;
@@ -34,8 +37,16 @@ public class ConsoleTab extends JTabbedPane {
         taskHistory.addNewScanTask(scanTask);
     }
 
-    public void addNewScanTask(IHttpRequestResponse httpRequestResponse, String name) {
-        taskHistory.addNewScanTask(httpRequestResponse, name);
+    public TaskHistory getTaskHistory() {
+        return taskHistory;
+    }
+
+    public ScanTaskTableModel getScanTaskTableModel() {
+        return taskHistory.getScanTaskTableModel();
+    }
+
+    public int addNewScanTask(IHttpRequestResponse httpRequestResponse, String taskName, String taskId) {
+        return taskHistory.addNewScanTask(httpRequestResponse, taskName, taskId);
     }
 
     public int getNewScanTaskId() {
@@ -43,7 +54,19 @@ public class ConsoleTab extends JTabbedPane {
     }
 
 
-    public List<ScanTaskArgs> getScanTaskArgsList() {
+    public List<ScanTaskOptionsCommandLine> getScanTaskArgsList() {
         return globalConfig.getScanTaskArgsList();
+    }
+
+    public SqlMapServiceTabPanel getSqlMapServiceTabPanel() {
+        return sqlMapServiceTabPanel;
+    }
+
+    public SqlMapApi getSqlMapApi() {
+        return sqlMapServiceTabPanel.getSqlMapApi();
+    }
+
+    public SqlMapApiClient getSqlMapApiClient() {
+        return sqlMapServiceTabPanel.getSqlMapApiClient();
     }
 }

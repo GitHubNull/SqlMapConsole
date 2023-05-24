@@ -1,9 +1,6 @@
 package models;
 
-import entities.ScanTask;
-import entities.ScanTaskColumnName;
-import entities.ScanTaskResultDetail;
-import entities.ScanTaskStatus;
+import entities.*;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
@@ -12,7 +9,7 @@ import java.util.ArrayList;
 
 public class ScanTaskTableModel extends AbstractTableModel {
     static final ArrayList<ScanTask> scanTaskArrayList = new ArrayList<>();
-    static final int STATIC_COLUMN_COUNT = 11;
+    static final int STATIC_COLUMN_COUNT = 12;
 
     @Override
     public int getRowCount() {
@@ -35,24 +32,26 @@ public class ScanTaskTableModel extends AbstractTableModel {
             case 0:
                 return scanTask.getId();
             case 1:
-                return scanTask.getName();
+                return scanTask.getTaskId();
             case 2:
-                return scanTask.getMethod();
+                return scanTask.getName();
             case 3:
-                return scanTask.getHost();
+                return scanTask.getMethod();
             case 4:
-                return scanTask.getPort();
+                return scanTask.getHost();
             case 5:
-                return scanTask.getUrl();
+                return scanTask.getPort();
             case 6:
-                return scanTask.getResponseStatusCode();
+                return scanTask.getUrl();
             case 7:
-                return scanTask.getResponseContentLength();
+                return scanTask.getResponseStatusCode();
             case 8:
-                return scanTask.getTaskStatus().toString();
+                return scanTask.getResponseContentLength();
             case 9:
-                return scanTask.getInjected().toString();
+                return scanTask.getTaskStatus().toString();
             case 10:
+                return scanTask.getInjected().toString();
+            case 11:
                 return scanTask.getComment();
             default:
                 return null;
@@ -69,24 +68,26 @@ public class ScanTaskTableModel extends AbstractTableModel {
             case 0:
                 return ScanTaskColumnName.ID.toString();
             case 1:
-                return ScanTaskColumnName.NAME.toString();
+                return ScanTaskColumnName.TASK_ID.toString();
             case 2:
-                return ScanTaskColumnName.METHOD.toString();
+                return ScanTaskColumnName.NAME.toString();
             case 3:
-                return ScanTaskColumnName.HOST.toString();
+                return ScanTaskColumnName.METHOD.toString();
             case 4:
-                return ScanTaskColumnName.PORT.toString();
+                return ScanTaskColumnName.HOST.toString();
             case 5:
-                return ScanTaskColumnName.URL.toString();
+                return ScanTaskColumnName.PORT.toString();
             case 6:
-                return ScanTaskColumnName.RESPONSE_STATUS_CODE.toString();
+                return ScanTaskColumnName.URL.toString();
             case 7:
-                return ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString();
+                return ScanTaskColumnName.RESPONSE_STATUS_CODE.toString();
             case 8:
-                return ScanTaskColumnName.TASK_STATUS.toString();
+                return ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString();
             case 9:
-                return ScanTaskColumnName.INJECTED.toString();
+                return ScanTaskColumnName.TASK_STATUS.toString();
             case 10:
+                return ScanTaskColumnName.INJECTED.toString();
+            case 11:
                 return ScanTaskColumnName.COMMENT.toString();
 
             default:
@@ -102,17 +103,18 @@ public class ScanTaskTableModel extends AbstractTableModel {
 
         switch (columnIndex) {
             case 0:
-            case 4:
-            case 6:
+            case 5:
             case 7:
+            case 8:
                 return Integer.class;
             case 1:
             case 2:
             case 3:
-            case 5:
-            case 8:
+            case 4:
+            case 6:
             case 9:
             case 10:
+            case 11:
                 return String.class;
             default:
                 return null;
@@ -140,6 +142,20 @@ public class ScanTaskTableModel extends AbstractTableModel {
         return null;
     }
 
+    public int getScanTaskIndexByTaskId(String taskId) {
+        if (scanTaskArrayList.isEmpty() || null == taskId || taskId.trim().isEmpty()) {
+            return -1;
+        }
+
+        for (ScanTask scanTask : scanTaskArrayList) {
+            if (scanTask.getTaskId().equals(taskId)) {
+                return scanTask.getId();
+            }
+        }
+
+        return -1;
+    }
+
 
     public void updateScanTaskScanTaskStatusById(int id, ScanTaskStatus scanTaskStatus) {
         if (id < 0 || id >= scanTaskArrayList.size() || null == scanTaskStatus) {
@@ -147,6 +163,14 @@ public class ScanTaskTableModel extends AbstractTableModel {
         }
 
         scanTaskArrayList.get(id).setTaskStatus(scanTaskStatus);
+    }
+
+    public void setScanTaskScanTaskInjectedById(int index, Injected injected) {
+        if (scanTaskArrayList.isEmpty() || 0 > index || index == scanTaskArrayList.size()) {
+            return;
+        }
+        scanTaskArrayList.get(index).setInjected(injected);
+
     }
 
     public ScanTaskStatus getScanTaskStatusById(int id) {

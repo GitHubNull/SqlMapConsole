@@ -1,7 +1,9 @@
 package ui.panel.subPanel;
 
-import entities.ScanTaskArgs;
-import models.ScanTaskArgsTableModel;
+import entities.ScanTaskOptionsCommandLine;
+import models.ScanTaskCommandLineTableModel;
+import utils.Autocomplete;
+import utils.GlobalStaticsVar;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,9 +19,10 @@ public class GlobalConfig extends JPanel {
     JTextField tagTextField;
 
 
-    JPanel argsContainerPanel;
-    JLabel argsLabel;
-    JTextField argsTextField;
+    JPanel commandLineContainerPanel;
+    JLabel commandLineLabel;
+    JTextField commandLineTextFiled;
+//    List<String> keywords;
 
     JPanel preOperationContainerPanel;
     JButton addBtn;
@@ -27,7 +30,7 @@ public class GlobalConfig extends JPanel {
 
     JScrollPane centerPanel;
     JTable table;
-    ScanTaskArgsTableModel tableModel;
+    ScanTaskCommandLineTableModel tableModel;
 
 
     JPanel southPanel;
@@ -51,13 +54,21 @@ public class GlobalConfig extends JPanel {
 
         northPanel.add(tagContainerPanel, BorderLayout.NORTH);
 
-        argsContainerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        argsLabel = new JLabel("参数");
-        argsTextField = new JTextField(64);
-        argsContainerPanel.add(argsLabel);
-        argsContainerPanel.add(argsTextField);
+        commandLineContainerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        commandLineLabel = new JLabel("参数");
 
-        northPanel.add(argsContainerPanel, BorderLayout.CENTER);
+        commandLineTextFiled = new JTextField(64);
+        commandLineTextFiled.setFocusTraversalKeysEnabled(false);
+        Autocomplete autoComplete = new Autocomplete(commandLineTextFiled, GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS);
+        commandLineTextFiled.getDocument().addDocumentListener(autoComplete);
+        commandLineTextFiled.getInputMap().put(KeyStroke.getKeyStroke("TAB"), utils.GlobalStaticsVar.COMMIT_ACTION);
+        commandLineTextFiled.getActionMap().put(utils.GlobalStaticsVar.COMMIT_ACTION, autoComplete.new CommitAction());
+
+
+        commandLineContainerPanel.add(commandLineLabel);
+        commandLineContainerPanel.add(commandLineTextFiled);
+
+        northPanel.add(commandLineContainerPanel, BorderLayout.CENTER);
 
         preOperationContainerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         addBtn = new JButton("新增");
@@ -71,7 +82,7 @@ public class GlobalConfig extends JPanel {
 
 
         table = new JTable();
-        tableModel = new ScanTaskArgsTableModel();
+        tableModel = new ScanTaskCommandLineTableModel();
         table.setModel(tableModel);
 
         centerPanel = new JScrollPane(table);
@@ -100,7 +111,7 @@ public class GlobalConfig extends JPanel {
     private void initNorthBtnActionListening() {
         addBtn.addActionListener(e -> {
             String tagStr = tagTextField.getText();
-            String argsStr = argsTextField.getText();
+            String argsStr = commandLineTextFiled.getText();
 
             if (null == tagStr || null == argsStr || tagStr.trim().isEmpty() || argsStr.trim().isEmpty()) {
                 return;
@@ -112,12 +123,12 @@ public class GlobalConfig extends JPanel {
 
             // todo 校验参数合法性
 
-            tableModel.addScanTaskArgs(tagStr, argsStr);
+            tableModel.addScanTaskOptionsCommandLine(tagStr, argsStr);
         });
 
         resetBtn.addActionListener(e -> {
             tagTextField.setText("");
-            argsTextField.setText("");
+            commandLineTextFiled.setText("");
         });
     }
 
@@ -151,7 +162,7 @@ public class GlobalConfig extends JPanel {
             }
 
             for (int selectRow : selectRows) {
-                tableModel.deleteScanTaskArgsById(selectRow);
+                tableModel.deleteScanTaskOptionsCommandLineById(selectRow);
             }
         });
 
@@ -179,7 +190,7 @@ public class GlobalConfig extends JPanel {
         initSouthBtnActionListening();
     }
 
-    public List<ScanTaskArgs> getScanTaskArgsList() {
-        return tableModel.getScanTaskArgsList();
+    public List<ScanTaskOptionsCommandLine> getScanTaskArgsList() {
+        return tableModel.getScanTaskOptionsCommandLineList();
     }
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 public class ScanTask implements Comparable<ScanTask> {
     int id;
+    String taskId;
     String name;
     IHttpRequestResponse requestResponse;
     String method;

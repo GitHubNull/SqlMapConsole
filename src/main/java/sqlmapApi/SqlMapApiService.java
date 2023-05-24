@@ -1,4 +1,6 @@
-package sqlmapApiService;
+package sqlmapApi;
+
+import burp.BurpExtender;
 
 import java.io.*;
 
@@ -19,9 +21,15 @@ public class SqlMapApiService {
 
     public void start() throws IOException {
         if (null != sqlmapApiSubProcess && sqlmapApiSubProcess.isAlive()) {
+            BurpExtender.stderr.println("SqlMapApiService.start(): null != sqlmapApiSubProcess && sqlmapApiSubProcess.isAlive()");
             return;
         }
-        ProcessBuilder processBuilder = new ProcessBuilder(pythonExeFilePath, "-u", sqlmapApiFilePath, "-s", "-p", Integer.toString(port));
+
+        final String[] cmdLine = new String[]{"cmd", "/c", pythonExeFilePath, "-u", sqlmapApiFilePath, "-s", "-p", Integer.toString(port)};
+        String tmp = String.join(",", cmdLine);
+        BurpExtender.stdout.println(String.format("SqlMapApiService.start() cmdLine: %s", tmp));
+//        ProcessBuilder processBuilder = new ProcessBuilder(pythonExeFilePath, "-u", sqlmapApiFilePath, "-s", "-p", Integer.toString(port));
+        ProcessBuilder processBuilder = new ProcessBuilder(cmdLine);
 //        processBuilder.redirect
         sqlmapApiSubProcess = processBuilder.start();
 

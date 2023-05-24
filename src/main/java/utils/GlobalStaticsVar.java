@@ -1,12 +1,69 @@
 package utils;
 
+import entities.ScanTaskStatus;
+import entities.TaskId2TaskIndexMap;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import sqlmapApi.requestsBody.ScanOptions;
+
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 public class GlobalStaticsVar {
-    public static int sqlmapApiPort = 5678;
-    public static String pythonExecPath = "E:\\python\\Python39\\python.exe";
-    public static String sqlmapApiPath = "E:\\myProgram\\sqlmap\\sqlmap-1.7\\sqlmapapi.py";
-    public static String tmpRequestDataFileParentPath = "E:\\tmp\\";
-    public static String sqlmapApiAdminToken = "";
-    public static boolean sqlmapApiAdminTokenSetFlag = false;
+    public final static String SQLMAP_API_HOST = "127.0.0.1"; // sqlmap_api_host
+    public static int SQLMAP_API_PORT = 5678; // sqlmap_api_port
+    public static String PYTHON_EXEC_PATH = "E:/dev-tools/python/Python39/python.exe"; // python_exec_path
+    public static String SQLMAP_API_PATH = "E:/myProcgram/sqlmap/sqlmap-1.7/sqlmapapi.py"; // sqlmap_api_path
+
+    public static String TMP_REQUEST_FILE_DIR_PATH = "E:/tmp"; // tmp_Request_File_dir_Path
+
+//    public static Map<String, Integer> taskId2TaskIndexMap = new HashMap<>();
+
+    public static Queue<TaskId2TaskIndexMap> TASK_ID_INDEX_MAP_QUEUE = new ConcurrentLinkedQueue<>(); // task_id_index_map_queue
+    public final static Map<String, ScanTaskStatus> STR_TO_SCAN_TASK_STATUS_MAP = new HashMap<>(); // str_to_scan_task_status_map
+
+    public static final String COMMIT_ACTION = "commit"; // commit_action
+    public static List<String> SCAN_OPTIONS_KEYWORDS = new ArrayList<>(); // scan_options_keywords
+    public static Options SCAN_OPTIONS_PARSER_DATA = new Options(); // scan_options_parser_data
+
+    public static boolean SQLMAPAPI_SERVICE_STOP_FLAG = true; // sqlmapapi_service_stop_flag
+    public static ReentrantReadWriteLock SQLMAPAPI_SERVICE_STOP_FLAG_LOCK = new ReentrantReadWriteLock(); // sqlmapapi_service_stop_flag_lock
+
+    public static ReentrantReadWriteLock OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK = new ReentrantReadWriteLock();
+    public static boolean OLD_SQLMAPAPI_SUB_PROCESS_KILLED = false; // old sqlmapapi sub process killed
+
+
+    static {
+        STR_TO_SCAN_TASK_STATUS_MAP.put("not running", ScanTaskStatus.Not_STARTED);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("running", ScanTaskStatus.RUNNING);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("terminated", ScanTaskStatus.FINISHED);
+
+        STR_TO_SCAN_TASK_STATUS_MAP.put("stopped", ScanTaskStatus.STOPPED);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("error", ScanTaskStatus.ERROR);
+
+//        SCAN_OPTIONS = new Options();
+
+        ScanOptions scanOptions = new ScanOptions();
+        //获取实体类 返回的是一个数组 数组的数据就是实体类中的字段
+        Field[] fields = scanOptions.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            //有的字段是用private修饰的 将他设置为可读
+            field.setAccessible(true);
+            // 输出属性名和属性值
+//            System.out.println("getName: " + fields[i].getName() + ", getType: " + fields[i].getType() + ", getGenericType: " + fields[i].getGenericType());
+            String fieldName = field.getName();
+            SCAN_OPTIONS_KEYWORDS.add(fieldName);
+
+            Option tmpOption = Option.builder().longOpt(fieldName)
+                    .argName(fieldName)
+                    .hasArg()
+                    .type(field.getType())
+                    .build();
+            SCAN_OPTIONS_PARSER_DATA.addOption(tmpOption);
+        }
+    }
 
 
 }

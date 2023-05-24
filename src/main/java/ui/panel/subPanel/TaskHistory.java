@@ -250,8 +250,15 @@ public class TaskHistory extends JPanel {
                 setRequestMessageEditor(requestMessageEditor);
 
 
+                byte[] httpResponseBytes = httpRequestResponse.getResponse();
+                if (null == httpResponseBytes || 0 == httpResponseBytes.length) {
+//                    httpRequestResponse.setResponse(new byte[]{});
+                    httpResponseBytes = new byte[]{};
+//                    return;
+                }
+
                 IMessageEditor responseMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
-                responseMessageEditor.setMessage(httpRequestResponse.getResponse(), false);
+                responseMessageEditor.setMessage(httpResponseBytes, false);
                 setResponseMessageEditor(responseMessageEditor);
             }
         });
@@ -263,9 +270,9 @@ public class TaskHistory extends JPanel {
         scanTaskTableModel.AddNewScanTask(scanTask);
     }
 
-    public void addNewScanTask(IHttpRequestResponse httpRequestResponse, String name) {
-        if (null == httpRequestResponse || null == name) {
-            return;
+    public int addNewScanTask(IHttpRequestResponse httpRequestResponse, String taskName, String taskId) {
+        if (null == httpRequestResponse || (null == taskName || taskName.trim().isEmpty()) || (null == taskId || taskId.trim().isEmpty())) {
+            return -1;
         }
 
         ScanTask scanTask = new ScanTask();
@@ -273,24 +280,24 @@ public class TaskHistory extends JPanel {
         int id = scanTaskTableModel.getNewScanTaskId();
         scanTask.setId(id);
 
-        scanTask.setName(name);
+        scanTask.setName(taskName);
 
         scanTask.setRequestResponse(httpRequestResponse);
 
         byte[] requestBytes = httpRequestResponse.getRequest();
         if (null == requestBytes || 0 == requestBytes.length) {
-            return;
+            return -1;
         }
 
         IRequestInfo requestInfo = BurpExtender.helpers.analyzeRequest(httpRequestResponse);
 
         if (null == requestInfo) {
-            return;
+            return -1;
         }
 
         IHttpService httpService = httpRequestResponse.getHttpService();
         if (null == httpService) {
-            return;
+            return -1;
         }
 
         scanTask.setHost(httpService.getHost());
@@ -299,7 +306,7 @@ public class TaskHistory extends JPanel {
         scanTask.setMethod(requestInfo.getMethod());
         URL url = requestInfo.getUrl();
         if (null == url) {
-            return;
+            return -1;
         }
 
         String urlStr;
@@ -334,7 +341,11 @@ public class TaskHistory extends JPanel {
         scanTask.setComment("");
 
 
-        scanTaskTableModel.AddNewScanTask(scanTask);
+        SwingUtilities.invokeLater(() -> {
+            scanTaskTableModel.AddNewScanTask(scanTask);
+        });
+
+        return id;
     }
 
     public int getNewScanTaskId() {
@@ -374,5 +385,9 @@ public class TaskHistory extends JPanel {
         responseMessageEditor = messageEditor;
 //        responseMessageEditor.setMessage(messageEditor.getMessage(), false);
 //        responseViewPanel.setViewportView(responseMessageEditor.getComponent());
+    }
+
+    public ScanTaskTableModel getScanTaskTableModel() {
+        return scanTaskTableModel;
     }
 }

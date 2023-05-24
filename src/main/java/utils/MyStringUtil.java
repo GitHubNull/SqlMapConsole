@@ -1,5 +1,7 @@
 package utils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
 public class MyStringUtil {
@@ -32,6 +34,23 @@ public class MyStringUtil {
         }
 
         return true;
+    }
+
+    public static String getDateTimeStr(int type) {
+        switch (type) {
+            case 0:
+                return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+            case 1:
+                return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            default:
+                return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        }
+
+    }
+
+
+    public static String genTaskName() {
+        return String.format("task-%s", getDateTimeStr(0));
     }
 
 
