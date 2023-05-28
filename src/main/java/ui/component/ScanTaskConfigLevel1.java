@@ -104,9 +104,7 @@ public class ScanTaskConfigLevel1 extends JFrame {
         });
 
 
-        cancelBtn.addActionListener(e -> {
-            dispose();
-        });
+        cancelBtn.addActionListener(e -> dispose());
 
     }
 }

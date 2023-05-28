@@ -11,9 +11,12 @@ public enum ScanTaskColumnName {
     URL("链接"), // 6
     RESPONSE_STATUS_CODE("响应报文状态码"), // 7
     RESPONSE_CONTENT_LENGTH("响应报文长度"), // 8
-    TASK_STATUS("任务状态"), // 9
-    INJECTED("是/否可注入"), // 10
-    COMMENT("备注"); // 11
+
+    CMD_LINE("命令行参数"), //9
+
+    TASK_STATUS("任务状态"), // 10
+    INJECTED("是/否可注入"), // 11
+    COMMENT("备注"); // 12
 
     private final String text;
 

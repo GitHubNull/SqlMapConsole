@@ -1,29 +1,47 @@
 package ui.panel.subPanel;
 
 import burp.*;
+import com.alibaba.fastjson2.JSON;
 import controller.MessageEditorController;
-import entities.Injected;
-import entities.ScanTask;
-import entities.ScanTaskResultDetail;
-import entities.ScanTaskStatus;
+import entities.*;
 import models.ScanTaskTableModel;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.jetbrains.annotations.NotNull;
+import sqlmapApi.SqlMapApiClient;
+import sqlmapApi.responsesBody.ScanKillResponse;
+import sqlmapApi.responsesBody.ScanStopResponse;
+import sqlmapApi.responsesBody.TaskDeleteResponse;
+import ui.component.ScanResultShowDialog;
+import ui.component.ScanTaskEditorDialog;
 
 import javax.swing.*;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.net.URL;
+
+import static utils.GlobalStaticsVar.SQLMAPAPI_SERVICE_STOP_FLAG;
+import static utils.GlobalStaticsVar.SQLMAPAPI_SERVICE_STOP_FLAG_LOCK;
 
 public class TaskHistory extends JPanel {
     JPanel northPanel;
+    JLabel filterLabel;
+    JComboBox<String> filterColumnSelectionComboBox;
     JTextField filterTextField;
     JButton filterBtn;
 
     JButton startTaskBtn;
     JButton stopTaskBtn;
+    JButton killTaskBtn;
 
     JButton deleteTaskBtn;
+    JButton updateTaskBtn;
 
     JButton selectAllBtn;
     JButton selectNoneBtn;
@@ -33,6 +51,7 @@ public class TaskHistory extends JPanel {
     JScrollPane tableContainer;
     JTable table;
     ScanTaskTableModel scanTaskTableModel;
+    TableRowSorter<ScanTaskTableModel> sorter;
 
 
     final static String REQUEST = "请求";
@@ -81,24 +100,47 @@ public class TaskHistory extends JPanel {
 
         northPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
+        filterLabel = new JLabel("按照");
+
+        filterColumnSelectionComboBox = new JComboBox<>();
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.ID.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.TASK_ID.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.NAME.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.METHOD.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.HOST.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.PORT.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.URL.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.RESPONSE_STATUS_CODE.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.CMD_LINE.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.TASK_STATUS.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.INJECTED.toString());
+        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.COMMENT.toString());
+
         filterTextField = new JTextField(32);
         filterBtn = new JButton("过滤");
 
+        northPanel.add(filterLabel);
+        northPanel.add(filterColumnSelectionComboBox);
         northPanel.add(filterTextField);
         northPanel.add(filterBtn);
 
         startTaskBtn = new JButton("开始扫描");
         stopTaskBtn = new JButton("停止扫描");
+        killTaskBtn = new JButton("杀掉扫描");
 
         deleteTaskBtn = new JButton("删除任务");
+        updateTaskBtn = new JButton("编辑任务");
 
         selectAllBtn = new JButton("选择全部");
         selectNoneBtn = new JButton("全不选择");
 
         northPanel.add(startTaskBtn);
         northPanel.add(stopTaskBtn);
+        northPanel.add(killTaskBtn);
 
         northPanel.add(deleteTaskBtn);
+        northPanel.add(updateTaskBtn);
 
         northPanel.add(selectAllBtn);
         northPanel.add(selectNoneBtn);
@@ -112,6 +154,8 @@ public class TaskHistory extends JPanel {
         table.setModel(scanTaskTableModel);
         tableContainer = new JScrollPane(table);
 
+        sorter = new TableRowSorter<>(scanTaskTableModel);
+        table.setRowSorter(sorter);
 
         messageViewRootContainer = new JPanel(new BorderLayout());
 
@@ -145,11 +189,6 @@ public class TaskHistory extends JPanel {
         cardLayout = new CardLayout();
         messageViewPanelCardContainer.setLayout(cardLayout);
 
-//        singleMessageView.add(new JLabel("singleMessageView"), BorderLayout.CENTER);
-
-//        requestViewPanel = new JScrollPane();
-//        responseViewPanel = new JScrollPane();
-
         requestMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
         responseMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
 
@@ -158,8 +197,6 @@ public class TaskHistory extends JPanel {
 
 
         singleMessageView = new JTabbedPane();
-//        singleMessageView.add(REQUEST, requestViewPanel);
-//        singleMessageView.add(RESPONSE, responseViewPanel);
 
 
         messageViewPanelCardContainer.add(doubleMessageView, DOUBLE_VIEW);
@@ -219,8 +256,6 @@ public class TaskHistory extends JPanel {
         });
 
         singleRadioButton.addActionListener(e -> {
-//                singleMessageView.setComponentAt(0, requestMessageEditor.getComponent());
-//                singleMessageView.setComponentAt(1, responseMessageEditor.getComponent());
             singleMessageView.add(REQUEST, requestMessageEditor.getComponent());
             singleMessageView.add(RESPONSE, responseMessageEditor.getComponent());
             messageShowStyle = MessageShowStyle.SINGLE;
@@ -233,45 +268,375 @@ public class TaskHistory extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
 
-                int[] selectRows = table.getSelectedRows();
-                if (null == selectRows || 0 == selectRows.length) {
-                    return;
+                int mouseClickCnt = e.getClickCount();
+                switch (mouseClickCnt) {
+                    case 1:
+                        tableMouseSingleClickEvent();
+                        break;
+                    case 2:
+                        tableMouseDoubleClickEvent();
+                        break;
+                    default:
+                        break;
                 }
 
-                ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRows[0]);
 
-                IHttpRequestResponse httpRequestResponse = scanTask.getRequestResponse();
-                if (null == httpRequestResponse) {
-                    return;
-                }
-
-                IMessageEditor requestMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
-                requestMessageEditor.setMessage(httpRequestResponse.getRequest(), true);
-                setRequestMessageEditor(requestMessageEditor);
-
-
-                byte[] httpResponseBytes = httpRequestResponse.getResponse();
-                if (null == httpResponseBytes || 0 == httpResponseBytes.length) {
-//                    httpRequestResponse.setResponse(new byte[]{});
-                    httpResponseBytes = new byte[]{};
-//                    return;
-                }
-
-                IMessageEditor responseMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
-                responseMessageEditor.setMessage(httpResponseBytes, false);
-                setResponseMessageEditor(responseMessageEditor);
             }
         });
 
+        scanTaskOperationBtnActionListeners();
+
+    }
+
+    private void filterTable() {
+        if (0 == scanTaskTableModel.getRowCount()) {
+            return;
+        }
+
+        Object selectedObject = filterColumnSelectionComboBox.getSelectedItem();
+        String filterText = filterTextField.getText();
+
+        if (null == filterText || filterText.isEmpty()) {
+            sorter.setRowFilter(null);
+            return;
+        }
+        if (null == selectedObject) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.NAME_INDEX));
+            return;
+        }
+
+        if (selectedObject.equals(ScanTaskColumnName.ID.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.ID_INDEX));
+        } else if (selectedObject.equals(ScanTaskColumnName.TASK_ID.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.TASK_ID_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.NAME.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.NAME_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.METHOD.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.METHOD_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.HOST.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.HOST_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.PORT.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.PORT_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.URL.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.URL_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.RESPONSE_STATUS_CODE.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.RESPONSE_STATUS_CODE_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.RESPONSE_CONTENT_LENGTH_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.CMD_LINE.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.CMD_LINE_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.TASK_STATUS.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.TASK_STATUS_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.INJECTED.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.INJECTED_INDEX));
+
+        } else if (selectedObject.equals(ScanTaskColumnName.COMMENT.toString())) {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.COMMENT_INDEX));
+
+        } else {
+            sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.NAME_INDEX));
+
+        }
+    }
+
+    private void scanTaskOperationBtnActionListeners() {
+        filterBtn.addActionListener(e -> filterTable());
+
+        startTaskBtn.addActionListener(e -> {
+            int[] selectRows = table.getSelectedRows();
+            if (null == selectRows || 0 == selectRows.length) {
+                return;
+            }
+
+            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().lock();
+            try {
+
+                // 如果服务未运行退出
+                if (SQLMAPAPI_SERVICE_STOP_FLAG) {
+                    return;
+                }
+            } finally {
+                SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().unlock();
+            }
+
+            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
+            if (null == sqlMapApiClient) {
+                return;
+            }
+
+            for (int selectRow : selectRows) {
+                ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRow);
+                if (null == scanTask || scanTask.getTaskStatus().equals(ScanTaskStatus.RUNNING) || scanTask.getTaskStatus().equals(ScanTaskStatus.ERROR)) {
+                    continue;
+                }
+
+                try {
+                    sqlMapApiClient.startScanTask(scanTask.getName(), scanTask.getCmdLine(), scanTask.getRequestResponse());
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+
+            }
+        });
+
+        stopTaskBtn.addActionListener(e -> {
+            int[] selectRows = table.getSelectedRows();
+            if (null == selectRows || 0 == selectRows.length) {
+                return;
+            }
+
+            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().lock();
+            try {
+
+                // 如果服务未运行退出
+                if (SQLMAPAPI_SERVICE_STOP_FLAG) {
+                    return;
+                }
+            } finally {
+                SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().unlock();
+            }
+
+            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
+            if (null == sqlMapApiClient) {
+                return;
+            }
+
+            for (int selectRow : selectRows) {
+                ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRow);
+                if (null == scanTask || scanTask.getTaskStatus().equals(ScanTaskStatus.STOPPED) || scanTask.getTaskStatus().equals(ScanTaskStatus.ERROR)) {
+                    continue;
+                }
+
+                Call call = sqlMapApiClient.stopScanTask(scanTask.getTaskId());
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        BurpExtender.stderr.println(e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        ResponseBody responseBody = response.body();
+                        if (null == responseBody) {
+                            return;
+                        }
+
+                        String bodyStr = responseBody.string();
+                        if (bodyStr.trim().isEmpty()) {
+                            return;
+                        }
+
+                        ScanStopResponse scanStopResponse = JSON.parseObject(bodyStr, ScanStopResponse.class);
+                        if (scanStopResponse.getSuccess()) {
+                            scanTaskTableModel.updateScanTaskScanTaskStatusById(scanTask.getId(), ScanTaskStatus.STOPPED);
+                        }
+
+                    }
+                });
+            }
+
+
+        });
+
+        killTaskBtn.addActionListener(e -> {
+            int[] selectRows = table.getSelectedRows();
+            if (null == selectRows || 0 == selectRows.length) {
+                return;
+            }
+
+            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().lock();
+            try {
+
+                // 如果服务未运行退出
+                if (SQLMAPAPI_SERVICE_STOP_FLAG) {
+                    return;
+                }
+            } finally {
+                SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().unlock();
+            }
+
+            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
+            if (null == sqlMapApiClient) {
+                return;
+            }
+
+            for (int selectRow : selectRows) {
+                ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRow);
+                if (null == scanTask || scanTask.getTaskStatus().equals(ScanTaskStatus.STOPPED) || scanTask.getTaskStatus().equals(ScanTaskStatus.ERROR)) {
+                    continue;
+                }
+
+                Call call = sqlMapApiClient.killScanTask(scanTask.getTaskId());
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        BurpExtender.stderr.println(e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        ResponseBody responseBody = response.body();
+                        if (null == responseBody) {
+                            return;
+                        }
+
+                        String bodyStr = responseBody.string();
+                        if (bodyStr.trim().isEmpty()) {
+                            return;
+                        }
+
+                        ScanKillResponse scanKillResponse = JSON.parseObject(bodyStr, ScanKillResponse.class);
+                        if (scanKillResponse.getSuccess()) {
+                            scanTaskTableModel.updateScanTaskScanTaskStatusById(scanTask.getId(), ScanTaskStatus.KILLED);
+                        }
+                    }
+                });
+            }
+
+        });
+
+        deleteTaskBtn.addActionListener(e -> {
+            int[] selectRows = table.getSelectedRows();
+            if (null == selectRows || 0 == selectRows.length) {
+                return;
+            }
+
+            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().lock();
+            try {
+
+                // 如果服务未运行退出
+                if (SQLMAPAPI_SERVICE_STOP_FLAG) {
+                    return;
+                }
+            } finally {
+                SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().unlock();
+            }
+
+            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
+            if (null == sqlMapApiClient) {
+                return;
+            }
+
+            for (int selectRow : selectRows) {
+                ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRow);
+
+                Call call = sqlMapApiClient.deleteScanTask(scanTask.getTaskId());
+                call.enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        BurpExtender.stderr.println(e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        ResponseBody responseBody = response.body();
+                        if (null == responseBody) {
+                            return;
+                        }
+
+                        String bodyStr = responseBody.string();
+                        if (bodyStr.trim().isEmpty()) {
+                            return;
+                        }
+
+                        TaskDeleteResponse taskDeleteResponse = JSON.parseObject(bodyStr, TaskDeleteResponse.class);
+                        if (taskDeleteResponse.getSuccess()) {
+                            scanTaskTableModel.deleteScanTask(scanTask);
+                        }
+                    }
+                });
+            }
+        });
+
+        updateTaskBtn.addActionListener(e -> {
+            int[] selectRows = table.getSelectedRows();
+            if (null == selectRows || 1 != selectRows.length) {
+                return;
+            }
+
+            ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRows[0]);
+            if (null == scanTask) {
+                return;
+            }
+
+            // 弹窗展示任务信息，进入编辑页面
+            ScanTaskEditorDialog scanTaskEditorDialog = new ScanTaskEditorDialog(scanTask);
+            scanTaskEditorDialog.setVisible(true);
+        });
+
+        selectAllBtn.addActionListener(e -> table.selectAll());
+
+        selectNoneBtn.addActionListener(e -> table.clearSelection());
+    }
+
+    private void tableMouseSingleClickEvent() {
+        int[] selectRows = table.getSelectedRows();
+        if (null == selectRows || 0 == selectRows.length) {
+            return;
+        }
+
+        ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRows[0]);
+
+        IHttpRequestResponse httpRequestResponse = scanTask.getRequestResponse();
+        if (null == httpRequestResponse) {
+            return;
+        }
+
+        IMessageEditor requestMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
+        requestMessageEditor.setMessage(httpRequestResponse.getRequest(), true);
+        setRequestMessageEditor(requestMessageEditor);
+
+
+        byte[] httpResponseBytes = httpRequestResponse.getResponse();
+        if (null == httpResponseBytes || 0 == httpResponseBytes.length) {
+//                    httpRequestResponse.setResponse(new byte[]{});
+            httpResponseBytes = new byte[]{};
+//                    return;
+        }
+
+        IMessageEditor responseMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
+        responseMessageEditor.setMessage(httpResponseBytes, false);
+        setResponseMessageEditor(responseMessageEditor);
+    }
+
+    private void tableMouseDoubleClickEvent() {
+        int[] selectRows = table.getSelectedRows();
+        if (null == selectRows || 1 != selectRows.length) {
+            return;
+        }
+
+        ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRows[0]);
+        ScanTaskStatus scanTaskStatus = scanTask.getTaskStatus();
+        if (scanTaskStatus.equals(ScanTaskStatus.Not_STARTED)) {
+            return;
+        }
+
+        ScanResultShowDialog scanResultShowDialog = new ScanResultShowDialog(scanTask.getTaskId());
+        scanResultShowDialog.setVisible(true);
+
     }
 
 
-    public void addNewScanTask(ScanTask scanTask) {
-        scanTaskTableModel.AddNewScanTask(scanTask);
+    public void flushScanTaskStatus() {
+        scanTaskTableModel.flushScanTaskStatus();
     }
 
-    public int addNewScanTask(IHttpRequestResponse httpRequestResponse, String taskName, String taskId) {
+    public int addNewScanTask(IHttpRequestResponse httpRequestResponse, String taskName, String taskId, String cmdLine) {
         if (null == httpRequestResponse || (null == taskName || taskName.trim().isEmpty()) || (null == taskId || taskId.trim().isEmpty())) {
+            return -1;
+        }
+        if (null == cmdLine || cmdLine.trim().isEmpty()) {
             return -1;
         }
 
@@ -341,15 +706,9 @@ public class TaskHistory extends JPanel {
         scanTask.setComment("");
 
 
-        SwingUtilities.invokeLater(() -> {
-            scanTaskTableModel.AddNewScanTask(scanTask);
-        });
+        SwingUtilities.invokeLater(() -> scanTaskTableModel.AddNewScanTask(scanTask));
 
         return id;
-    }
-
-    public int getNewScanTaskId() {
-        return scanTaskTableModel.getNewScanTaskId();
     }
 
     public synchronized void setRequestMessageEditor(IMessageEditor messageEditor) {
@@ -365,10 +724,6 @@ public class TaskHistory extends JPanel {
 
         requestMessageEditor = messageEditor;
 
-//        requestMessageEditor.setMessage(messageEditor.getMessage(), true);
-//        requestViewPanel.setViewportView(requestMessageEditor.getComponent());
-//        requestMessageEditor.setMessage(messageEditor.get);
-
     }
 
     public synchronized void setResponseMessageEditor(IMessageEditor messageEditor) {
@@ -383,8 +738,6 @@ public class TaskHistory extends JPanel {
         });
 
         responseMessageEditor = messageEditor;
-//        responseMessageEditor.setMessage(messageEditor.getMessage(), false);
-//        responseViewPanel.setViewportView(responseMessageEditor.getComponent());
     }
 
     public ScanTaskTableModel getScanTaskTableModel() {

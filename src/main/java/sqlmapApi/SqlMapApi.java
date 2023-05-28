@@ -7,11 +7,11 @@ public interface SqlMapApi {
 
     // new task
     // GET {{sqlmap_api}}/task/new
-    public Call taskNew();
+    Call taskNew();
 
     // delete task
     // GET {{sqlmap_api}}/task/{{taskid}}/delete
-    public Call taskDelete(String taskId);
+    Call taskDelete(String taskId);
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -20,39 +20,39 @@ public interface SqlMapApi {
 
     // admin list
     // GET {{sqlmap_api}}/admin/list
-    public Call adminList();
+    Call adminList();
 
     // admin flush
     // GET {{sqlmap_api}}/admin/flush
-    public Call adminFlush();
+    Call adminFlush();
 
     // scan task start
     // POST {{sqlmap_api}}/scan/{{taskid}}/start
-    public Call scanStart(String taskId, ScanOptions scanOptions);
+    Call scanStart(String taskId, ScanOptions scanOptions);
 
     // scan task stop
     // GET {{sqlmap_api}}/scan/{{taskid}}/stop
-    public Call scanStop(String taskId);
+    Call scanStop(String taskId);
 
     // scan task kill
     // GET {{sqlmap_api}}/scan/{{taskid}}/kill
-    public Call scanKill(String taskId);
+    Call scanKill(String taskId);
 
     // scan status
     // GET {{sqlmap_api}}/scan/{{taskid}}/status
-    public Call scanStatus(String taskId);
+    Call scanStatus(String taskId);
 
     // scan data
     // GET {{sqlmap_api}}/scan/{{taskid}}/data
-    public Call scanData(String taskId);
+    Call scanData(String taskId);
 
     // scan log range start and end
     // GET {{sqlmap_api}}/scan/{{taskid}}/log/1/6
-    public Call scanLogRange(String taskId, int startIndex, int endIndex);
+    Call scanLogRange(String taskId, int startIndex, int endIndex);
 
     // scan log all
     // GET {{sqlmap_api}}/scan/{{taskid}}/log
-    public Call scanLog(String taskId);
+    Call scanLog(String taskId);
 
 
     ////////////////////////////////////////////////////////////////
@@ -61,14 +61,14 @@ public interface SqlMapApi {
 
     // option list
     // GET {{sqlmap_api}}/option/{{taskid}}/list
-    public Call optionList(String taskId);
+    Call optionList(String taskId);
 
     // option get
     // POST {{sqlmap_api}}/option/{{taskid}}/get
-    public Call optionGet(String taskId);
+    Call optionGet(String taskId);
 
 
     // option set
     // POST {{sqlmap_api}}/option/{{taskid}}/set
-    public Call optionSet(String taskId);
+    Call optionSet(String taskId);
 }

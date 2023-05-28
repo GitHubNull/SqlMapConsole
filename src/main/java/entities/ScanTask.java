@@ -16,6 +16,8 @@ public class ScanTask implements Comparable<ScanTask> {
     int responseStatusCode;
     int responseContentLength;
 
+    String cmdLine;
+
 
     ScanTaskStatus taskStatus;
     Injected injected;

@@ -2,8 +2,8 @@ package ui.component;
 
 import burp.BurpExtender;
 import burp.IHttpRequestResponse;
-import entities.ScanTaskOptionsCommandLine;
-import models.ScanTaskCommandLineTableModel;
+import entities.OptionsCommandLine;
+import models.CommandLineTableModel;
 import utils.MyStringUtil;
 
 import javax.swing.*;
@@ -18,7 +18,7 @@ public class ScanTaskConfigLevel2 extends JFrame {
 
     JScrollPane tableContainer;
     JTable table;
-    ScanTaskCommandLineTableModel scanTaskCommandLineTableModel;
+    CommandLineTableModel commandLineTableModel;
 
 
     JPanel south;
@@ -45,8 +45,8 @@ public class ScanTaskConfigLevel2 extends JFrame {
 
 
         table = new JTable();
-        scanTaskCommandLineTableModel = new ScanTaskCommandLineTableModel();
-        table.setModel(scanTaskCommandLineTableModel);
+        commandLineTableModel = new CommandLineTableModel();
+        table.setModel(commandLineTableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 
@@ -78,94 +78,9 @@ public class ScanTaskConfigLevel2 extends JFrame {
 
     }
 
-    public void setScanTaskArgsList(List<ScanTaskOptionsCommandLine> scanTaskOptionsCommandLineList) {
-        scanTaskCommandLineTableModel.setScanTaskArgsList(scanTaskOptionsCommandLineList);
+    public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
+        commandLineTableModel.setScanTaskArgsList(optionsCommandLineList);
     }
-
-//    private void startScanTask(String taskName, String commandLineStr){
-//        final String finalCommandLineStr = commandLineStr;
-//
-//        SwingUtilities.invokeLater(() -> {
-//
-//            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
-//
-//            Call call = sqlMapApiClient.genScanTaskId();
-//            if (null == call) {
-//                return;
-//            }
-//
-//            call.enqueue(new Callback() {
-//                @Override
-//                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-//                    BurpExtender.stderr.println(e.getMessage());
-//                }
-//
-//                @Override
-//                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-//                    assert response.body() != null;
-//                    sqlmapApi.responsesBody.TaskNewResponse taskNewResponse = JSON.parseObject(response.body().string(), TaskNewResponse.class);
-//                    if (!taskNewResponse.getSuccess()) {
-//                        return;
-//                    }
-//
-//
-//                    ScanOptions scanOptions = null;
-//                    try {
-//                        scanOptions = ScanOptionsHelper.CommandLine2ScanOptions(finalCommandLineStr);
-//                    } catch (IllegalAccessException ex) {
-//                        BurpExtender.stderr.println(ex.getMessage());
-//                        return;
-////                            throw new RuntimeException(ex);
-//                    }
-////                        ScanOptions scanOptions = new ScanOptions();
-//
-//
-//                    // push task to sqlmapApi
-//                    if (null == scanOptions.getRequestFile() || scanOptions.getRequestFile().isEmpty()){
-//                        final String tmpRequestFilePath = TmpRequestFileHelper.writeBytesToFile(httpRequestResponse.getRequest());
-//                        if (null == tmpRequestFilePath){
-//                            sqlMapApiClient.deleteScanTask(taskNewResponse.getTaskid());
-//                            return;
-//                        }
-//
-//                        scanOptions.setRequestFile(tmpRequestFilePath);
-//                    }
-//
-//                    Call callIn = sqlMapApiClient.addScanTask(taskNewResponse.getTaskid(), scanOptions);
-//                    if (null == callIn) {
-//                        return;
-//                    }
-//
-//                    callIn.enqueue(new Callback() {
-//                        @Override
-//                        public void onFailure(@NotNull Call call, @NotNull IOException e) {
-//                            BurpExtender.stderr.println(e.getMessage());
-//                        }
-//
-//                        @Override
-//                        public void onResponse(@NotNull Call call, @NotNull Response response) {
-//
-//                            // add new row to history panel
-//                            BurpExtender.addScanTaskToTaskHistory(httpRequestResponse, taskName, taskNewResponse.getTaskid());
-//
-//                            ScanTaskTableModel scanTaskTableModel = BurpExtender.getScanTaskTableModel();
-//                            int index = scanTaskTableModel.getScanTaskIndexByTaskId(taskNewResponse.getTaskid());
-//                            if (-1 == index) {
-//                                return;
-//                            }
-//
-//                            // push scan status item to scan_status_queue
-//                            SwingUtilities.invokeLater(() -> GlobalStaticsVar.TASK_ID_INDEX_MAP_QUEUE.offer(new TaskId2TaskIndexMap(taskNewResponse.getTaskid(), index)));
-//
-//                        }
-//                    });
-//
-//                }
-//            });
-//
-//
-//        });
-//    }
 
     private void initActionBlistering() {
         okBtn.addActionListener(e -> {
@@ -176,11 +91,11 @@ public class ScanTaskConfigLevel2 extends JFrame {
             }
 
             int tableSelectIndex = table.getSelectedRow();
-            if (0 >= scanTaskCommandLineTableModel.getRowCount() && (0 > tableSelectIndex || scanTaskCommandLineTableModel.getRowCount() <= tableSelectIndex)) {
+            if (0 >= commandLineTableModel.getRowCount() && (0 > tableSelectIndex || commandLineTableModel.getRowCount() <= tableSelectIndex)) {
                 return;
             }
 
-            String commandLineStr = scanTaskCommandLineTableModel.getScanTaskOptionsCommandLineById(tableSelectIndex).getCommandLineStr();
+            String commandLineStr = commandLineTableModel.getOptionsCommandLineById(tableSelectIndex).getCommandLineStr();
             if (null == commandLineStr || commandLineStr.trim().isEmpty()) {
                 return;
             }

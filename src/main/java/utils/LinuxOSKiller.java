@@ -24,7 +24,7 @@ public class LinuxOSKiller {
 
     private List<String> getSubProcessLines() {
         List<String> subProcessLines = new ArrayList<>();
-        String cmdLine = "cmd /C netstat -ano | findstr /B /I /R /C:\".*" + port + ".*LISTENING.*/d{1,5}$\"";
+        String cmdLine = "lsof -i tcp:" + port + " | grep \\(LISTEN\\) | awk -F' ' '{print $2}'";
         try {
             Process p = Runtime.getRuntime().exec(cmdLine);
             InputStream input = p.getInputStream();
@@ -49,21 +49,22 @@ public class LinuxOSKiller {
     private Set<Integer> findProcessIds(List<String> subProcessLines) {
         Set<Integer> subProcessIds = new HashSet<>();
         for (String subProcessLine : subProcessLines) {
-            int offset = subProcessLine.lastIndexOf(" ");
-            String spid = subProcessLine.substring(offset);
-            spid = spid.replaceAll(" ", "");
+            String subPid = subProcessLine.trim();
 
-            if (!StringUtils.isNumeric(spid)) {
+            if (subPid.isEmpty()) {
                 continue;
             }
 
-            int pid = -1;
+            if (!StringUtils.isNumeric(subPid)) {
+                continue;
+            }
+
             try {
-                pid = Integer.parseInt(spid);
+                int pid = Integer.parseInt(subPid);
+                subProcessIds.add(pid);
             } catch (NumberFormatException e) {
                 BurpExtender.stderr.println(e.getMessage());
             }
-            subProcessIds.add(pid);
 
         }
 
@@ -72,9 +73,9 @@ public class LinuxOSKiller {
 
     private boolean killWithPid(Set<Integer> subProcessIds) {
         for (Integer subProcessId : subProcessIds) {
-            String cmdLine = "cmd /c taskkill /F /pid " + subProcessId;
+            String cmdLine = "kill -9 " + subProcessId;
             try {
-                Process process = Runtime.getRuntime().exec(cmdLine);
+                Runtime.getRuntime().exec(cmdLine);
             } catch (IOException e) {
                 e.printStackTrace();
                 return false;
@@ -86,12 +87,9 @@ public class LinuxOSKiller {
     public void kill() {
         SwingUtilities.invokeLater(() -> {
             List<String> subProcessLines = getSubProcessLines();
-            if (null == subProcessLines || 0 > subProcessLines.size()) {
-                return;
-            }
 
             Set<Integer> subProcessIds = findProcessIds(subProcessLines);
-            if (null == subProcessIds || 0 >= subProcessIds.size()) {
+            if (0 == subProcessIds.size()) {
                 return;
             }
 

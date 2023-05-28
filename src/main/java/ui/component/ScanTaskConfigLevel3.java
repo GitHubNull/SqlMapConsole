@@ -2,9 +2,9 @@ package ui.component;
 
 import burp.BurpExtender;
 import burp.IHttpRequestResponse;
-import entities.ScanTaskArgsColumnName;
-import entities.ScanTaskOptionsCommandLine;
-import models.ScanTaskCommandLineTableModel;
+import entities.CommandLineColumnName;
+import entities.OptionsCommandLine;
+import models.CommandLineTableModel;
 import utils.Autocomplete;
 import utils.MyStringUtil;
 
@@ -43,7 +43,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
     JScrollPane tableContainerPanel;
     JTable table;
-    ScanTaskCommandLineTableModel scanTaskCommandLineTableModel;
+    CommandLineTableModel commandLineTableModel;
 
     JPanel southPanel;
 
@@ -68,8 +68,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
         commandLineTagLabel = new JLabel("标签");
         commandLineTagTextField = new JTextField(MyStringUtil.getDateTimeStr(0));
         commandLineTagTextField.setColumns(64);
-//        tagTextField.setCol
-//        tagTextField.setMinimumSize(new Dimension(10, 12));
+
         commandLineTagPanel.add(commandLineTagLabel);
         commandLineTagPanel.add(commandLineTagTextField);
 
@@ -106,7 +105,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
 
         filterPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterColumnSelectionComboBox = new JComboBox<>(new String[]{ScanTaskArgsColumnName.TAG.toString(), ScanTaskArgsColumnName.ARGS_STR.toString()});
+        filterColumnSelectionComboBox = new JComboBox<>(new String[]{CommandLineColumnName.TAG.toString(), CommandLineColumnName.COMMAND_LINE_STR.toString()});
         filterLabel = new JLabel("按照");
         filterTextField = new JTextField(64);
         filterBtn = new JButton("过滤");
@@ -120,8 +119,8 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
 
         table = new JTable();
-        scanTaskCommandLineTableModel = new ScanTaskCommandLineTableModel();
-        table.setModel(scanTaskCommandLineTableModel);
+        commandLineTableModel = new CommandLineTableModel();
+        table.setModel(commandLineTableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         tableContainerPanel = new JScrollPane(table);
@@ -166,93 +165,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
         pack();
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-//        setVisible(true);
     }
-
-//    private void startScanTask(String taskName, String commandLineStr){
-//        final String finalCommandLineStr = commandLineStr;
-//
-//        SwingUtilities.invokeLater(() -> {
-//
-//            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
-//
-//            Call call = sqlMapApiClient.genScanTaskId();
-//            if (null == call) {
-//                return;
-//            }
-//
-//            call.enqueue(new Callback() {
-//                @Override
-//                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-//                    BurpExtender.stderr.println(e.getMessage());
-//                }
-//
-//                @Override
-//                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-//                    assert response.body() != null;
-//                    sqlmapApi.responsesBody.TaskNewResponse taskNewResponse = JSON.parseObject(response.body().string(), TaskNewResponse.class);
-//                    if (!taskNewResponse.getSuccess()) {
-//                        return;
-//                    }
-//
-//
-//                    ScanOptions scanOptions = null;
-//                    try {
-//                        scanOptions = ScanOptionsHelper.CommandLine2ScanOptions(finalCommandLineStr);
-//                    } catch (IllegalAccessException ex) {
-//                        BurpExtender.stderr.println(ex.getMessage());
-//                        return;
-////                            throw new RuntimeException(ex);
-//                    }
-////                        ScanOptions scanOptions = new ScanOptions();
-//
-//
-//                    // push task to sqlmapApi
-//                    if (null == scanOptions.getRequestFile() || scanOptions.getRequestFile().isEmpty()){
-//                        final String tmpRequestFilePath = TmpRequestFileHelper.writeBytesToFile(httpRequestResponse.getRequest());
-//                        if (null == tmpRequestFilePath){
-//                            sqlMapApiClient.deleteScanTask(taskNewResponse.getTaskid());
-//                            return;
-//                        }
-//
-//                        scanOptions.setRequestFile(tmpRequestFilePath);
-//                    }
-//
-//                    Call callIn = sqlMapApiClient.addScanTask(taskNewResponse.getTaskid(), scanOptions);
-//                    if (null == callIn) {
-//                        return;
-//                    }
-//
-//                    callIn.enqueue(new Callback() {
-//                        @Override
-//                        public void onFailure(@NotNull Call call, @NotNull IOException e) {
-//                            BurpExtender.stderr.println(e.getMessage());
-//                        }
-//
-//                        @Override
-//                        public void onResponse(@NotNull Call call, @NotNull Response response) {
-//
-//                            // add new row to history panel
-//                            BurpExtender.addScanTaskToTaskHistory(httpRequestResponse, taskName, taskNewResponse.getTaskid());
-//
-//                            ScanTaskTableModel scanTaskTableModel = BurpExtender.getScanTaskTableModel();
-//                            int index = scanTaskTableModel.getScanTaskIndexByTaskId(taskNewResponse.getTaskid());
-//                            if (-1 == index) {
-//                                return;
-//                            }
-//
-//                            // push scan status item to scan_status_queue
-//                            SwingUtilities.invokeLater(() -> GlobalStaticsVar.TASK_ID_INDEX_MAP_QUEUE.offer(new TaskId2TaskIndexMap(taskNewResponse.getTaskid(), index)));
-//
-//                        }
-//                    });
-//
-//                }
-//            });
-//
-//
-//        });
-//    }
 
     public void initActionListener() {
         okBtn.addActionListener(e -> {
@@ -262,17 +175,17 @@ public class ScanTaskConfigLevel3 extends JFrame {
                 return;
             }
 
-            String commandLineStr = null;
+            String commandLineStr;
             String commandLineTextFieldText = commandLineTextFiled.getText();
 
             int tableSelectIndex = table.getSelectedRow();
             String tableCommandLineStr = null;
-            if (0 < scanTaskCommandLineTableModel.getRowCount() && (0 <= tableSelectIndex ||
-                    scanTaskCommandLineTableModel.getRowCount() > tableSelectIndex)) {
-                ScanTaskOptionsCommandLine scanTaskOptionsCommandLine =
-                        scanTaskCommandLineTableModel.getScanTaskOptionsCommandLineById(tableSelectIndex);
-                if (null != scanTaskOptionsCommandLine) {
-                    tableCommandLineStr = scanTaskOptionsCommandLine.getCommandLineStr();
+            if (0 < commandLineTableModel.getRowCount() && (0 <= tableSelectIndex ||
+                    commandLineTableModel.getRowCount() > tableSelectIndex)) {
+                OptionsCommandLine optionsCommandLine =
+                        commandLineTableModel.getOptionsCommandLineById(tableSelectIndex);
+                if (null != optionsCommandLine) {
+                    tableCommandLineStr = optionsCommandLine.getCommandLineStr();
                 }
 
             }
@@ -298,12 +211,29 @@ public class ScanTaskConfigLevel3 extends JFrame {
             dispose();
         });
 
-        cancelBtn.addActionListener(e -> {
-            dispose();
-//                setVisible(false);
-        });
+        cancelBtn.addActionListener(e -> dispose());
 
         useBtn.addActionListener(e -> {
+            String taskName = taskNameTextField.getText();
+            if (null == taskName || taskName.trim().isEmpty()) {
+                dispose();
+                return;
+            }
+
+            String commandLineTextFieldText = commandLineTextFiled.getText();
+            if ((null == commandLineTextFieldText || commandLineTextFieldText.trim().isEmpty())) {
+                dispose();
+                return;
+            }
+
+            commandLineTextFieldText = commandLineTextFieldText.trim();
+
+            try {
+                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
+            } catch (IOException ex) {
+                BurpExtender.stderr.println(ex.getMessage());
+//                throw new RuntimeException(ex);
+            }
 
             dispose();
         });
@@ -311,7 +241,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
     }
 
-    public void setScanTaskArgsList(List<ScanTaskOptionsCommandLine> scanTaskOptionsCommandLineList) {
-        scanTaskCommandLineTableModel.setScanTaskArgsList(scanTaskOptionsCommandLineList);
+    public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
+        commandLineTableModel.setScanTaskArgsList(optionsCommandLineList);
     }
 }

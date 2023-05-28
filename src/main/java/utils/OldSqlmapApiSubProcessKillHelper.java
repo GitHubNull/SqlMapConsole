@@ -18,7 +18,4 @@ public class OldSqlmapApiSubProcessKillHelper {
         }
     }
 
-//    public static void main(String[] args) {
-//        kill();
-//    }
 }

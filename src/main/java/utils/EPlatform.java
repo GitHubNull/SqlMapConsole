@@ -6,7 +6,6 @@ package utils;
  * @author isea533
  */
 public enum EPlatform {
-    Any("any"),
     Linux("Linux"),
     Mac_OS("Mac OS"),
     Mac_OS_X("Mac OS X"),
@@ -26,7 +25,7 @@ public enum EPlatform {
     OpenVMS("OpenVMS"),
     Others("Others");
 
-    private EPlatform(String desc) {
+    EPlatform(String desc) {
         this.description = desc;
     }
 

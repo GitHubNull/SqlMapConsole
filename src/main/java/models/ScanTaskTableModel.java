@@ -1,15 +1,20 @@
 package models;
 
-import entities.*;
+import entities.Injected;
+import entities.ScanTask;
+import entities.ScanTaskColumnName;
+import entities.ScanTaskStatus;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 
+import static entities.ScanTaskColumnNameIndex.*;
+
 
 public class ScanTaskTableModel extends AbstractTableModel {
     static final ArrayList<ScanTask> scanTaskArrayList = new ArrayList<>();
-    static final int STATIC_COLUMN_COUNT = 12;
+    static final int STATIC_COLUMN_COUNT = 13;
 
     @Override
     public int getRowCount() {
@@ -29,29 +34,31 @@ public class ScanTaskTableModel extends AbstractTableModel {
 
         ScanTask scanTask = scanTaskArrayList.get(rowIndex);
         switch (columnIndex) {
-            case 0:
+            case ID_INDEX:
                 return scanTask.getId();
-            case 1:
+            case TASK_ID_INDEX:
                 return scanTask.getTaskId();
-            case 2:
+            case NAME_INDEX:
                 return scanTask.getName();
-            case 3:
+            case METHOD_INDEX:
                 return scanTask.getMethod();
-            case 4:
+            case HOST_INDEX:
                 return scanTask.getHost();
-            case 5:
+            case PORT_INDEX:
                 return scanTask.getPort();
-            case 6:
+            case URL_INDEX:
                 return scanTask.getUrl();
-            case 7:
+            case RESPONSE_STATUS_CODE_INDEX:
                 return scanTask.getResponseStatusCode();
-            case 8:
+            case RESPONSE_CONTENT_LENGTH_INDEX:
                 return scanTask.getResponseContentLength();
-            case 9:
+            case CMD_LINE_INDEX:
+                return scanTask.getCmdLine();
+            case TASK_STATUS_INDEX:
                 return scanTask.getTaskStatus().toString();
-            case 10:
-                return scanTask.getInjected().toString();
-            case 11:
+            case INJECTED_INDEX:
+                return scanTask.getInjected();
+            case COMMENT_INDEX:
                 return scanTask.getComment();
             default:
                 return null;
@@ -65,29 +72,31 @@ public class ScanTaskTableModel extends AbstractTableModel {
             return null;
         }
         switch (column) {
-            case 0:
+            case ID_INDEX:
                 return ScanTaskColumnName.ID.toString();
-            case 1:
+            case TASK_ID_INDEX:
                 return ScanTaskColumnName.TASK_ID.toString();
-            case 2:
+            case NAME_INDEX:
                 return ScanTaskColumnName.NAME.toString();
-            case 3:
+            case METHOD_INDEX:
                 return ScanTaskColumnName.METHOD.toString();
-            case 4:
+            case HOST_INDEX:
                 return ScanTaskColumnName.HOST.toString();
-            case 5:
+            case PORT_INDEX:
                 return ScanTaskColumnName.PORT.toString();
-            case 6:
+            case URL_INDEX:
                 return ScanTaskColumnName.URL.toString();
-            case 7:
+            case RESPONSE_STATUS_CODE_INDEX:
                 return ScanTaskColumnName.RESPONSE_STATUS_CODE.toString();
-            case 8:
+            case RESPONSE_CONTENT_LENGTH_INDEX:
                 return ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString();
-            case 9:
+            case CMD_LINE_INDEX:
+                return ScanTaskColumnName.CMD_LINE.toString();
+            case TASK_STATUS_INDEX:
                 return ScanTaskColumnName.TASK_STATUS.toString();
-            case 10:
+            case INJECTED_INDEX:
                 return ScanTaskColumnName.INJECTED.toString();
-            case 11:
+            case COMMENT_INDEX:
                 return ScanTaskColumnName.COMMENT.toString();
 
             default:
@@ -102,19 +111,20 @@ public class ScanTaskTableModel extends AbstractTableModel {
         }
 
         switch (columnIndex) {
-            case 0:
-            case 5:
-            case 7:
-            case 8:
+            case ID_INDEX:
+            case PORT_INDEX:
+            case RESPONSE_STATUS_CODE_INDEX:
+            case RESPONSE_CONTENT_LENGTH_INDEX:
                 return Integer.class;
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 6:
-            case 9:
-            case 10:
-            case 11:
+            case TASK_ID_INDEX:
+            case NAME_INDEX:
+            case METHOD_INDEX:
+            case HOST_INDEX:
+            case URL_INDEX:
+            case CMD_LINE_INDEX:
+            case TASK_STATUS_INDEX:
+            case INJECTED_INDEX:
+            case COMMENT_INDEX:
                 return String.class;
             default:
                 return null;
@@ -133,6 +143,15 @@ public class ScanTaskTableModel extends AbstractTableModel {
         SwingUtilities.invokeLater(this::fireTableDataChanged);
     }
 
+    public void flushScanTaskStatus() {
+        for (ScanTask scanTask : scanTaskArrayList) {
+            SwingUtilities.invokeLater(() -> {
+                scanTask.setTaskStatus(ScanTaskStatus.STOPPED);
+                fireTableCellUpdated(scanTask.getId(), TASK_STATUS_INDEX);
+            });
+        }
+    }
+
     public ScanTask getScanTaskById(int id) {
         for (ScanTask scanTask : scanTaskArrayList) {
             if (scanTask.getId() == id) {
@@ -142,58 +161,29 @@ public class ScanTaskTableModel extends AbstractTableModel {
         return null;
     }
 
-    public int getScanTaskIndexByTaskId(String taskId) {
-        if (scanTaskArrayList.isEmpty() || null == taskId || taskId.trim().isEmpty()) {
-            return -1;
-        }
-
-        for (ScanTask scanTask : scanTaskArrayList) {
-            if (scanTask.getTaskId().equals(taskId)) {
-                return scanTask.getId();
-            }
-        }
-
-        return -1;
-    }
-
 
     public void updateScanTaskScanTaskStatusById(int id, ScanTaskStatus scanTaskStatus) {
         if (id < 0 || id >= scanTaskArrayList.size() || null == scanTaskStatus) {
             return;
         }
 
-        scanTaskArrayList.get(id).setTaskStatus(scanTaskStatus);
+        SwingUtilities.invokeLater(() -> {
+            scanTaskArrayList.get(id).setTaskStatus(scanTaskStatus);
+            fireTableCellUpdated(id, TASK_STATUS_INDEX);
+        });
     }
 
-    public void setScanTaskScanTaskInjectedById(int index, Injected injected) {
+    public void updateScanTaskScanTaskInjectedById(int index, Injected injected) {
         if (scanTaskArrayList.isEmpty() || 0 > index || index == scanTaskArrayList.size()) {
             return;
         }
-        scanTaskArrayList.get(index).setInjected(injected);
 
-    }
+        SwingUtilities.invokeLater(() -> {
+            scanTaskArrayList.get(index).setInjected(injected);
+            fireTableCellUpdated(index, INJECTED_INDEX);
+        });
 
-    public ScanTaskStatus getScanTaskStatusById(int id) {
-        if (id < 0 || id >= scanTaskArrayList.size()) {
-            return null;
-        }
 
-        return scanTaskArrayList.get(id).getTaskStatus();
-    }
-
-    public void setScanTaskScanTaskResultDetailById(int id, ScanTaskResultDetail scanTaskResultDetail) {
-        if (id < 0 || id >= scanTaskArrayList.size() || null == scanTaskResultDetail) {
-            return;
-        }
-
-        scanTaskArrayList.get(id).setScanTaskResultDetail(scanTaskResultDetail);
-    }
-
-    public ScanTaskResultDetail getScanTaskResultDetailById(int id) {
-        if (id < 0 || id >= scanTaskArrayList.size()) {
-            return null;
-        }
-        return scanTaskArrayList.get(id).getScanTaskResultDetail();
     }
 
     public int getNewScanTaskId() {

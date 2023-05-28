@@ -1,5 +1,6 @@
 package utils;
 
+import burp.BurpExtender;
 import entities.ScanTaskStatus;
 import entities.TaskId2TaskIndexMap;
 import org.apache.commons.cli.Option;
@@ -7,6 +8,8 @@ import org.apache.commons.cli.Options;
 import sqlmapApi.requestsBody.ScanOptions;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -18,8 +21,6 @@ public class GlobalStaticsVar {
     public static String SQLMAP_API_PATH = "E:/myProcgram/sqlmap/sqlmap-1.7/sqlmapapi.py"; // sqlmap_api_path
 
     public static String TMP_REQUEST_FILE_DIR_PATH = "E:/tmp"; // tmp_Request_File_dir_Path
-
-//    public static Map<String, Integer> taskId2TaskIndexMap = new HashMap<>();
 
     public static Queue<TaskId2TaskIndexMap> TASK_ID_INDEX_MAP_QUEUE = new ConcurrentLinkedQueue<>(); // task_id_index_map_queue
     public final static Map<String, ScanTaskStatus> STR_TO_SCAN_TASK_STATUS_MAP = new HashMap<>(); // str_to_scan_task_status_map
@@ -33,7 +34,11 @@ public class GlobalStaticsVar {
 
     public static ReentrantReadWriteLock OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK = new ReentrantReadWriteLock();
     public static boolean OLD_SQLMAPAPI_SUB_PROCESS_KILLED = false; // old sqlmapapi sub process killed
+    public final static String SCAN_OPTIONS_HELP_TEXT = MyStringUtil.genScanOptionsHelpText();  // scan_options_help_text
 
+    public final static String EXTENDER_CONFIG_SEPARATOR = "/";
+
+    public final static String COMMAND_LINES_STR_VAR = "command_lines_str";
 
     static {
         STR_TO_SCAN_TASK_STATUS_MAP.put("not running", ScanTaskStatus.Not_STARTED);
@@ -41,6 +46,7 @@ public class GlobalStaticsVar {
         STR_TO_SCAN_TASK_STATUS_MAP.put("terminated", ScanTaskStatus.FINISHED);
 
         STR_TO_SCAN_TASK_STATUS_MAP.put("stopped", ScanTaskStatus.STOPPED);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("killed", ScanTaskStatus.KILLED);
         STR_TO_SCAN_TASK_STATUS_MAP.put("error", ScanTaskStatus.ERROR);
 
 //        SCAN_OPTIONS = new Options();
@@ -52,9 +58,7 @@ public class GlobalStaticsVar {
             //有的字段是用private修饰的 将他设置为可读
             field.setAccessible(true);
             // 输出属性名和属性值
-//            System.out.println("getName: " + fields[i].getName() + ", getType: " + fields[i].getType() + ", getGenericType: " + fields[i].getGenericType());
             String fieldName = field.getName();
-            SCAN_OPTIONS_KEYWORDS.add(fieldName);
 
             Option tmpOption = Option.builder().longOpt(fieldName)
                     .argName(fieldName)
@@ -62,6 +66,32 @@ public class GlobalStaticsVar {
                     .type(field.getType())
                     .build();
             SCAN_OPTIONS_PARSER_DATA.addOption(tmpOption);
+
+            Class<?> classes = field.getType();
+
+            String firstLetter = fieldName.substring(0, 1).toUpperCase();
+            String getter = "get" + firstLetter + fieldName.substring(1);
+
+            Object value;
+            try {
+                Method method = scanOptions.getClass().getMethod(getter);
+                value = method.invoke(scanOptions);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException exception) {
+                BurpExtender.stderr.println(exception.getMessage());
+                continue;
+            }
+
+            String keyWord = fieldName;
+
+            if (classes.equals(String.class) && null != value) {
+                keyWord = String.format("%s %s", fieldName, value);
+            } else if (classes.equals(Boolean.class) && null != value) {
+                keyWord = String.format("%s %b", fieldName, value);
+            } else if (classes.equals(Integer.class) && null != value) {
+                keyWord = String.format("%s %d", fieldName, (Integer) value);
+            }
+
+            SCAN_OPTIONS_KEYWORDS.add(keyWord);
         }
     }
 

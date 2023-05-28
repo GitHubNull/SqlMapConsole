@@ -1,21 +1,19 @@
 package sqlmapApi;
 
 import burp.BurpExtender;
+import utils.OSinfo;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import static utils.GlobalStaticsVar.*;
 
 public class SqlMapApiService {
     Process sqlmapApiSubProcess;
 
-
-    String pythonExeFilePath;
-    String sqlmapApiFilePath;
-    int port;
-
-    public SqlMapApiService(String pythonExeFilePath, String sqlmapApiFilePath, int port) {
-        this.pythonExeFilePath = pythonExeFilePath;
-        this.sqlmapApiFilePath = sqlmapApiFilePath;
-        this.port = port;
+    public SqlMapApiService() {
         sqlmapApiSubProcess = null;
     }
 
@@ -25,12 +23,14 @@ public class SqlMapApiService {
             return;
         }
 
-        final String[] cmdLine = new String[]{"cmd", "/c", pythonExeFilePath, "-u", sqlmapApiFilePath, "-s", "-p", Integer.toString(port)};
+        String[] cmdLine = new String[]{"cmd", "/c", PYTHON_EXEC_PATH, "-u", SQLMAP_API_PATH, "-s", "-p", Integer.toString(SQLMAP_API_PORT)};
+        if (OSinfo.isMacOS() || OSinfo.isLinux()) {
+            cmdLine = new String[]{PYTHON_EXEC_PATH, "-u", SQLMAP_API_PATH, "-s", "-p", Integer.toString(SQLMAP_API_PORT)};
+        }
+
         String tmp = String.join(",", cmdLine);
         BurpExtender.stdout.println(String.format("SqlMapApiService.start() cmdLine: %s", tmp));
-//        ProcessBuilder processBuilder = new ProcessBuilder(pythonExeFilePath, "-u", sqlmapApiFilePath, "-s", "-p", Integer.toString(port));
         ProcessBuilder processBuilder = new ProcessBuilder(cmdLine);
-//        processBuilder.redirect
         sqlmapApiSubProcess = processBuilder.start();
 
     }
@@ -39,18 +39,11 @@ public class SqlMapApiService {
         if (null == sqlmapApiSubProcess) {
             return;
         }
-        if (null != sqlmapApiSubProcess && !sqlmapApiSubProcess.isAlive()) {
+        if (!sqlmapApiSubProcess.isAlive()) {
             return;
         }
 
         sqlmapApiSubProcess.destroy();
-    }
-
-    public BufferedInputStream getBufferedInputStream() {
-        if (null == sqlmapApiSubProcess || !sqlmapApiSubProcess.isAlive()) {
-            return null;
-        }
-        return new BufferedInputStream(sqlmapApiSubProcess.getInputStream());
     }
 
     public BufferedReader getBufferedReader() {
@@ -58,28 +51,11 @@ public class SqlMapApiService {
             return null;
         }
         BufferedInputStream bufferedInputStream = new BufferedInputStream(sqlmapApiSubProcess.getInputStream());
-        if (null == bufferedInputStream) {
-            return null;
-        }
 
         InputStreamReader inputStreamReader = new InputStreamReader(bufferedInputStream);
-        if (null == inputStreamReader) {
-            return null;
-        }
 
 
         return new BufferedReader(inputStreamReader);
     }
 
-    public OutputStream getOutputStream() {
-        return sqlmapApiSubProcess.getOutputStream();
-    }
-
-    public InputStream getErrorStream() {
-        return sqlmapApiSubProcess.getErrorStream();
-    }
-
-    public InputStream getInputStream() {
-        return sqlmapApiSubProcess.getInputStream();
-    }
 }

@@ -1,6 +1,5 @@
 package controller;
 
-import burp.IHttpRequestResponse;
 import burp.IHttpService;
 import burp.IMessageEditorController;
 
@@ -11,12 +10,6 @@ public class MessageEditorController implements IMessageEditorController {
 
 
     public MessageEditorController() {
-    }
-
-    public MessageEditorController(IHttpRequestResponse httpRequestResponse) {
-        requestBytes = httpRequestResponse.getRequest();
-        responseBytes = httpRequestResponse.getResponse();
-        httpService = httpRequestResponse.getHttpService();
     }
 
     @Override

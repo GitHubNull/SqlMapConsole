@@ -12,14 +12,15 @@ import okhttp3.Callback;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
-import sqlmapApi.SqlMapApi;
 import sqlmapApi.SqlMapApiClient;
 import sqlmapApi.SqlMapApiImpl;
 import sqlmapApi.SqlMapApiService;
+import sqlmapApi.responsesBody.AdminFlushResponse;
 import sqlmapApi.responsesBody.ScanStatusResponse;
 import ui.component.MessageConsole;
 import utils.GlobalStaticsVar;
 import utils.MyStringUtil;
+import utils.OSinfo;
 import utils.OldSqlmapApiSubProcessKillHelper;
 
 import javax.swing.*;
@@ -27,6 +28,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +72,7 @@ public class SqlMapServiceTabPanel extends JPanel {
     JButton startSqlMapApiBtn;
     JButton stopSqlMapApiBtn;
     JButton flushSqlMapApiLogBtn;
+    JButton flushSqlMapApiServiceBtn;
 
     JScrollPane sqlmapApiServiceRunningLogViewContainer;
     JTextPane sqlmapApiServiceRunningConsole;
@@ -80,7 +83,7 @@ public class SqlMapServiceTabPanel extends JPanel {
     SqlMapApiService sqlMapApiService;
     MessageConsole mc;
 
-    SqlMapApiImpl sqlMapApi;
+    SqlMapApiImpl sqlMapApiImpl;
     volatile SqlMapApiClient sqlMapApiClient;
 
     public SqlMapServiceTabPanel() {
@@ -151,10 +154,12 @@ public class SqlMapServiceTabPanel extends JPanel {
         startSqlMapApiBtn = new JButton("启动sqlmapApi服务");
         stopSqlMapApiBtn = new JButton("关闭sqlmapApi服务");
         flushSqlMapApiLogBtn = new JButton("清除sqlmapApi服务日志");
+        flushSqlMapApiServiceBtn = new JButton("清除历史扫描结果");
 
         sqlmapApiServiceOperationPanel.add(startSqlMapApiBtn);
         sqlmapApiServiceOperationPanel.add(stopSqlMapApiBtn);
         sqlmapApiServiceOperationPanel.add(flushSqlMapApiLogBtn);
+        sqlmapApiServiceOperationPanel.add(flushSqlMapApiServiceBtn);
 
         centerPanel.add(sqlmapApiServiceOperationPanel, BorderLayout.NORTH);
 
@@ -177,7 +182,7 @@ public class SqlMapServiceTabPanel extends JPanel {
         mc.redirectOut(Color.BLACK, System.out);
         mc.setMessageLines(100);
 
-        sqlMapApiService = new SqlMapApiService(PYTHON_EXEC_PATH, SQLMAP_API_PATH, SQLMAP_API_PORT);
+        sqlMapApiService = new SqlMapApiService();
 
         initActionListening();
 
@@ -193,26 +198,27 @@ public class SqlMapServiceTabPanel extends JPanel {
         pythonExePathTextFiled.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
-            private void flushData(DocumentEvent e) {
+            private void flushData() {
                 String tmp = pythonExePathTextFiled.getText();
                 if (null == tmp || tmp.trim().isEmpty()) {
                     return;
                 }
 
                 tmp = tmp.trim();
+
                 File f = new File(tmp);
                 if (f.exists()) {
                     PYTHON_EXEC_PATH = tmp;
@@ -223,26 +229,27 @@ public class SqlMapServiceTabPanel extends JPanel {
         sqlmapApiPathTextFiled.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
-            private void flushData(DocumentEvent e) {
+            private void flushData() {
                 String tmp = sqlmapApiPathTextFiled.getText();
                 if (null == tmp || tmp.trim().isEmpty()) {
                     return;
                 }
 
                 tmp = tmp.trim();
+
                 File f = new File(tmp);
                 if (f.exists()) {
                     SQLMAP_API_PATH = tmp;
@@ -253,20 +260,20 @@ public class SqlMapServiceTabPanel extends JPanel {
         sqlmapApiTmpRequestFilePathTextFiled.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                flushData(e);
+                flushData();
             }
 
-            private void flushData(DocumentEvent e) {
+            private void flushData() {
                 String tmp = sqlmapApiTmpRequestFilePathTextFiled.getText();
                 if (null == tmp || tmp.trim().isEmpty()) {
                     return;
@@ -320,28 +327,41 @@ public class SqlMapServiceTabPanel extends JPanel {
 
 
         pythonExePathChooserBtn.addActionListener(e -> {
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("python.exe", "exe");
+
             JFileChooser fileChooser = new JFileChooser(userHome);
-            fileChooser.setFileFilter(filter);
+
+            if (OSinfo.isWindows()) {
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("python.exe", "exe");
+                fileChooser.setFileFilter(filter);
+            }
+
             int returnVal = fileChooser.showOpenDialog(SqlMapServiceTabPanel.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
+
                 File file = fileChooser.getSelectedFile();
                 if (null == file || file.getPath().trim().isEmpty()) {
+
                     return;
                 }
 
                 String fileName = file.getName();
                 Set<String> pythonExeFileSet = new HashSet<>();
 
-                pythonExeFileSet.add("python.exe");
-                pythonExeFileSet.add("python2.exe");
-                pythonExeFileSet.add("python3.exe");
+                if (OSinfo.isMacOS() || OSinfo.isLinux()) {
+                    pythonExeFileSet.add("python");
+                    pythonExeFileSet.add("python3");
+                } else if (OSinfo.isWindows()) {
+                    pythonExeFileSet.add("python.exe");
+                    pythonExeFileSet.add("python2.exe");
+                    pythonExeFileSet.add("python3.exe");
+                }
 
                 if (!pythonExeFileSet.contains(fileName)) {
                     return;
                 }
 
                 PYTHON_EXEC_PATH = file.getAbsolutePath();
+                pythonExePathTextFiled.setText(PYTHON_EXEC_PATH);
             }
 
 
@@ -366,6 +386,7 @@ public class SqlMapServiceTabPanel extends JPanel {
 
 
                 SQLMAP_API_PATH = file.getAbsolutePath();
+                sqlmapApiPathTextFiled.setText(SQLMAP_API_PATH);
             }
         });
 
@@ -387,6 +408,7 @@ public class SqlMapServiceTabPanel extends JPanel {
 
 
                 TMP_REQUEST_FILE_DIR_PATH = directPath;
+                sqlmapApiTmpRequestFilePathTextFiled.setText(TMP_REQUEST_FILE_DIR_PATH);
             }
         });
 
@@ -394,74 +416,64 @@ public class SqlMapServiceTabPanel extends JPanel {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // 开启/关闭 sqlmapapi 服务
 
-        startSqlMapApiBtn.addActionListener(e -> {
-
-//            OldSqlmapApiSubProcessKillHelper.kill();
-//            OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK.readLock().lock();
-//            try {
-//                while (true) {
-//                    if (OLD_SQLMAPAPI_SUB_PROCESS_KILLED) {
-//                        break;
-//                    }
-//                }
-//            } finally {
-//                OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK.readLock().unlock();
-//            }
-
-
-            startSqlMapApiBtn.setEnabled(false);
-//            startSqlMapApiBtn.setBackground(Color.GRAY);
-
-            stopSqlMapApiBtn.setEnabled(true);
-//            stopSqlMapApiBtn.setBackground(Color.GREEN);
-
-            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.writeLock().lock();
-            try {
-                sqlMapApiService.start();
-
-                sqlMapApi = new SqlMapApiImpl(GlobalStaticsVar.SQLMAP_API_HOST, GlobalStaticsVar.SQLMAP_API_PORT);
-//        sqlMapApi = new SqlMapApiImpl(GlobalStaticsVar.SQLMAP_API_HOST, 8775);
-                TASK_ID_INDEX_MAP_QUEUE.clear();
-                sqlMapApiClient = new SqlMapApiClient(sqlMapApi);
-
-                SQLMAPAPI_SERVICE_STOP_FLAG = false;
-
-                sqlmapApiServiceStatusTextPanel.setBackground(Color.GREEN);
-                sqlmapApiServiceStatusTextPanel.setText("sqlmapApi服务运行中...");
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-
-                SQLMAPAPI_SERVICE_STOP_FLAG = true;
-
-                return;
-            } finally {
-                SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.writeLock().unlock();
-            }
-
-
-            // scan scan task running status thread
-            new Thread(() -> {
-                try {
-                    pollingScanTaskQueueStatus();
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }).start();
-
-            // write sqlmap api status to gui console thread
-            new Thread(() -> {
-                try {
-                    pollingSqlmapApiSubProcessOutput();
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }).start();
-
-        });
+        startSqlMapApiBtn.addActionListener(this::actionPerformed);
 
         stopSqlMapApiBtn.addActionListener(e -> stopService());
 
         flushSqlMapApiLogBtn.addActionListener(e -> sqlmapApiServiceRunningConsole.setText(""));
+
+        flushSqlMapApiServiceBtn.addActionListener(e -> {
+            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().lock();
+            try {
+
+                // 如果服务未运行退出
+                if (SQLMAPAPI_SERVICE_STOP_FLAG) {
+                    return;
+                }
+            } finally {
+                SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().unlock();
+            }
+
+
+            // 请求刷新历史扫描结果
+            Call call = sqlMapApiImpl.adminFlush();
+            if (null == call) {
+                return;
+            }
+
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                    System.out.println(e.getMessage());
+                }
+
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+
+                    ResponseBody responseBody = response.body();
+                    if (null == responseBody) {
+                        return;
+                    }
+
+                    String bodyStr = responseBody.string();
+                    if (bodyStr.trim().isEmpty()) {
+                        return;
+                    }
+
+                    AdminFlushResponse adminFlushResponse = JSON.parseObject(bodyStr, AdminFlushResponse.class);
+                    if (adminFlushResponse.getSuccess()) {
+
+                        // 清除任务扫描队列
+                        TASK_ID_INDEX_MAP_QUEUE.clear();
+
+                        // 遍历所有任务，对状态为运行中的任务进行翻转，翻转为暂停
+                        BurpExtender.flushScanTaskStatus();
+                    }
+                }
+            });
+
+
+        });
 
 
     }
@@ -484,7 +496,7 @@ public class SqlMapServiceTabPanel extends JPanel {
             SQLMAPAPI_SERVICE_STOP_FLAG = true;
             TASK_ID_INDEX_MAP_QUEUE.clear();
             sqlMapApiClient = null;
-            sqlMapApi = null;
+            sqlMapApiImpl = null;
         } finally {
             SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.writeLock().unlock();
         }
@@ -511,7 +523,8 @@ public class SqlMapServiceTabPanel extends JPanel {
     // 后台轮询sqlmap api 进程输出并重定向到GUI的console界面
     private void pollingSqlmapApiSubProcessOutput() throws InterruptedException {
         BufferedReader bufferedReader;
-        while (null == (bufferedReader = sqlMapApiService.getBufferedReader())) ;
+        while (null == (bufferedReader = sqlMapApiService.getBufferedReader())) {
+        }
 
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         BufferedReader finalBufferedReader = bufferedReader;
@@ -631,9 +644,9 @@ public class SqlMapServiceTabPanel extends JPanel {
                 JSONObject scanDataPre = JSON.parseObject(body);
                 JSONArray scanData = (JSONArray) scanDataPre.get("data");
                 if (null == scanData) {
-                    BurpExtender.getScanTaskTableModel().setScanTaskScanTaskInjectedById(taskId2TaskIndexMap.getTaskIndex(), Injected.NO);
+                    BurpExtender.getScanTaskTableModel().updateScanTaskScanTaskInjectedById(taskId2TaskIndexMap.getTaskIndex(), Injected.NO);
                 } else {
-                    BurpExtender.getScanTaskTableModel().setScanTaskScanTaskInjectedById(taskId2TaskIndexMap.getTaskIndex(), Injected.YES);
+                    BurpExtender.getScanTaskTableModel().updateScanTaskScanTaskInjectedById(taskId2TaskIndexMap.getTaskIndex(), Injected.YES);
                 }
 
             }
@@ -642,12 +655,70 @@ public class SqlMapServiceTabPanel extends JPanel {
 
     }
 
-
-    public SqlMapApi getSqlMapApi() {
-        return sqlMapApi;
+    public void flushConfig() {
+        pythonExePathTextFiled.setText(PYTHON_EXEC_PATH);
+        sqlmapApiPathTextFiled.setText(SQLMAP_API_PATH);
+        sqlmapApiPortTextFiled.setText(Integer.toString(SQLMAP_API_PORT));
+        sqlmapApiTmpRequestFilePathTextFiled.setText(TMP_REQUEST_FILE_DIR_PATH);
     }
+
 
     public SqlMapApiClient getSqlMapApiClient() {
         return sqlMapApiClient;
+    }
+
+    private void actionPerformed(ActionEvent e) {
+
+        startSqlMapApiBtn.setEnabled(false);
+//            startSqlMapApiBtn.setBackground(Color.GRAY);
+
+        stopSqlMapApiBtn.setEnabled(true);
+//            stopSqlMapApiBtn.setBackground(Color.GREEN);
+
+        SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.writeLock().lock();
+        try {
+            sqlMapApiService.start();
+
+            sqlMapApiImpl = new SqlMapApiImpl(SQLMAP_API_HOST, SQLMAP_API_PORT);
+//        sqlMapApi = new SqlMapApiImpl(GlobalStaticsVar.SQLMAP_API_HOST, 8775);
+            TASK_ID_INDEX_MAP_QUEUE.clear();
+            sqlMapApiClient = new SqlMapApiClient(sqlMapApiImpl);
+
+            SQLMAPAPI_SERVICE_STOP_FLAG = false;
+
+            sqlmapApiServiceStatusTextPanel.setBackground(Color.GREEN);
+            sqlmapApiServiceStatusTextPanel.setText("sqlmapApi服务运行中...");
+        } catch (IOException ex) {
+            BurpExtender.stderr.println(ex.getMessage());
+
+            SQLMAPAPI_SERVICE_STOP_FLAG = true;
+
+            sqlmapApiServiceStatusTextPanel.setBackground(Color.RED);
+            sqlmapApiServiceStatusTextPanel.setText("sqlmapApi服务运行失败!");
+
+            return;
+        } finally {
+            SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.writeLock().unlock();
+        }
+
+
+        // scan scan task running status thread
+        new Thread(() -> {
+            try {
+                pollingScanTaskQueueStatus();
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }).start();
+
+        // write sqlmap api status to gui console thread
+        new Thread(() -> {
+            try {
+                pollingSqlmapApiSubProcessOutput();
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+        }).start();
+
     }
 }

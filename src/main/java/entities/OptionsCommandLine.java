@@ -2,21 +2,23 @@ package entities;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class ScanTaskOptionsCommandLine implements Comparable<ScanTaskOptionsCommandLine> {
+public class OptionsCommandLine implements Comparable<OptionsCommandLine>, Serializable {
+    private final static long serialVersionUID = 1;
     int id;
     String tag;
     String commandLineStr;
 
-    public ScanTaskOptionsCommandLine(int id, String tag, String commandLineStr) {
+    public OptionsCommandLine(int id, String tag, String commandLineStr) {
         this.id = id;
         this.tag = tag;
         this.commandLineStr = commandLineStr;
     }
 
-
     @Override
-    public int compareTo(ScanTaskOptionsCommandLine o) {
+    public int compareTo(OptionsCommandLine o) {
         Integer id = this.getId();
         return id.compareTo(o.getId());
     }

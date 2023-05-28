@@ -22,7 +22,7 @@ public class OSinfo {
     }
 
     public static boolean isMacOS() {
-        return OS.indexOf("mac") >= 0 && OS.indexOf("os") > 0 && OS.indexOf("x") < 0;
+        return OS.indexOf("mac") >= 0 && OS.indexOf("os") > 0 && OS.indexOf("x") > 0;
     }
 
     public static boolean isMacOSX() {

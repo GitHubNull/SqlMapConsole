@@ -52,20 +52,24 @@ public class WindowsOSKiller {
         Set<Integer> subProcessIds = new HashSet<>();
         for (String subProcessLine : subProcessLines) {
             int offset = subProcessLine.lastIndexOf(" ");
-            String spid = subProcessLine.substring(offset);
-            spid = spid.replaceAll(" ", "");
+            String subPid = subProcessLine.substring(offset);
+            subPid = subPid.replaceAll(" ", "");
 
-            if (!StringUtils.isNumeric(spid)) {
+            if (subPid.isEmpty()) {
                 continue;
             }
 
-            int pid = -1;
+            if (!StringUtils.isNumeric(subPid)) {
+                continue;
+            }
+
             try {
-                pid = Integer.parseInt(spid);
+                int pid = Integer.parseInt(subPid);
+                subProcessIds.add(pid);
             } catch (NumberFormatException e) {
                 BurpExtender.stderr.println(e.getMessage());
             }
-            subProcessIds.add(pid);
+
 
         }
 
@@ -101,7 +105,7 @@ public class WindowsOSKiller {
 //        System.out.println("WindowsOSKiller.kill() ");
         SwingUtilities.invokeLater(() -> {
             List<String> subProcessLines = getSubProcessLines();
-            if (null == subProcessLines || 0 > subProcessLines.size()) {
+            if (0 == subProcessLines.size()) {
 //                System.out.println("WindowsOSKiller.kill() null == subProcessLines || 0 > subProcessLines.size()");
                 OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK.writeLock().lock();
                 try {
@@ -114,7 +118,7 @@ public class WindowsOSKiller {
 //            System.out.println(String.format("subProcessLines: %s", String.join(", ", subProcessLines)));
 
             Set<Integer> subProcessIds = findProcessIds(subProcessLines);
-            if (null == subProcessIds || 0 >= subProcessIds.size()) {
+            if (0 == subProcessIds.size()) {
 //                BurpExtender.stdout.println("WindowsOSKiller.kill() null == subProcessIds || 0 >= subProcessIds.size()");
                 OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK.writeLock().lock();
                 try {

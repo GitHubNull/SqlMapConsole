@@ -313,9 +313,6 @@ public class ScanOptions {
     private String lastChar;
     private String sqlQuery;
 
-//    @Builder.Default
-//    private Boolean sqlShell = false; // default value false
-
     private String sqlFile;
 
     @Builder.Default
@@ -496,10 +493,6 @@ public class ScanOptions {
 
     @Builder.Default
     private Boolean updateAll = false; // default value false
-
-
-//    @Builder.Default
-//    private Boolean wizard = false; // default value false
 
 
     @Builder.Default

@@ -4,9 +4,9 @@ import burp.BurpExtender;
 import burp.IHttpRequestResponse;
 import burp.IMessageEditor;
 import controller.MessageEditorController;
-import entities.ScanTaskArgsColumnName;
-import entities.ScanTaskOptionsCommandLine;
-import models.ScanTaskCommandLineTableModel;
+import entities.CommandLineColumnName;
+import entities.OptionsCommandLine;
+import models.CommandLineTableModel;
 import utils.Autocomplete;
 import utils.MyStringUtil;
 
@@ -22,7 +22,6 @@ public class ScanTaskConfigLevel4 extends JFrame {
     private final IHttpRequestResponse httpRequestResponse;
     JPanel northPanel;
 
-    JTextPane requestViewPanel;
     IMessageEditor requestMessageEditor;
 
 
@@ -36,7 +35,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
     JScrollPane tableContainerPanel;
 
     JTable table;
-    ScanTaskCommandLineTableModel scanTaskCommandLineTableModel;
+    CommandLineTableModel commandLineTableModel;
 
 
     JPanel southPanel;
@@ -77,20 +76,12 @@ public class ScanTaskConfigLevel4 extends JFrame {
 
         requestMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), true);
         requestMessageEditor.setMessage(httpRequestResponse.getRequest(), true);
-//        requestMessageEditor.set
 
         northPanel = new JPanel(new BorderLayout());
-
-//        requestViewPanel = new JTextPane();
-//        requestViewPanel.setBorder(new TitledBorder("请求报文"));
-//
-//        requestViewPanel.setText("helllo");
 
 
         northPanel.add(requestMessageEditor.getComponent(), BorderLayout.CENTER);
 
-
-//        northPanel.add(operationPanel, BorderLayout.SOUTH);
 
         add(northPanel, BorderLayout.NORTH);
 
@@ -98,7 +89,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
         centerPanel = new JPanel(new BorderLayout());
 
         filterPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterColumnSelectionComboBox = new JComboBox<>(new String[]{ScanTaskArgsColumnName.TAG.toString(), ScanTaskArgsColumnName.ARGS_STR.toString()});
+        filterColumnSelectionComboBox = new JComboBox<>(new String[]{CommandLineColumnName.TAG.toString(), CommandLineColumnName.COMMAND_LINE_STR.toString()});
         filterLabel = new JLabel("按照");
         filterTextField = new JTextField(64);
         filterBtn = new JButton("过滤");
@@ -112,9 +103,9 @@ public class ScanTaskConfigLevel4 extends JFrame {
 
         table = new JTable();
 
-        scanTaskCommandLineTableModel = new ScanTaskCommandLineTableModel();
+        commandLineTableModel = new CommandLineTableModel();
 
-        table.setModel(scanTaskCommandLineTableModel);
+        table.setModel(commandLineTableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         tableContainerPanel = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -209,17 +200,17 @@ public class ScanTaskConfigLevel4 extends JFrame {
                 return;
             }
 
-            String commandLineStr = null;
+            String commandLineStr;
             String commandLineTextFieldText = commandLineTextFiled.getText();
 
             int tableSelectIndex = table.getSelectedRow();
             String tableCommandLineStr = null;
-            if (0 < scanTaskCommandLineTableModel.getRowCount() && (0 <= tableSelectIndex ||
-                    scanTaskCommandLineTableModel.getRowCount() > tableSelectIndex)) {
-                ScanTaskOptionsCommandLine scanTaskOptionsCommandLine =
-                        scanTaskCommandLineTableModel.getScanTaskOptionsCommandLineById(tableSelectIndex);
-                if (null != scanTaskOptionsCommandLine) {
-                    tableCommandLineStr = scanTaskOptionsCommandLine.getCommandLineStr();
+            if (0 < commandLineTableModel.getRowCount() && (0 <= tableSelectIndex ||
+                    commandLineTableModel.getRowCount() > tableSelectIndex)) {
+                OptionsCommandLine optionsCommandLine =
+                        commandLineTableModel.getOptionsCommandLineById(tableSelectIndex);
+                if (null != optionsCommandLine) {
+                    tableCommandLineStr = optionsCommandLine.getCommandLineStr();
                 }
 
             }
@@ -256,15 +247,12 @@ public class ScanTaskConfigLevel4 extends JFrame {
 //                setVisible(false);
         });
 
-        useBtn.addActionListener(e -> {
-
-            dispose();
-        });
+        useBtn.addActionListener(e -> dispose());
 
 
     }
 
-    public void setScanTaskArgsList(List<ScanTaskOptionsCommandLine> scanTaskOptionsCommandLineList) {
-        scanTaskCommandLineTableModel.setScanTaskArgsList(scanTaskOptionsCommandLineList);
+    public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
+        commandLineTableModel.setScanTaskArgsList(optionsCommandLineList);
     }
 }

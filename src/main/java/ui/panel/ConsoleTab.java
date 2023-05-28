@@ -1,12 +1,10 @@
 package ui.panel;
 
 import burp.IHttpRequestResponse;
-import entities.ScanTask;
-import entities.ScanTaskOptionsCommandLine;
+import entities.OptionsCommandLine;
 import models.ScanTaskTableModel;
-import sqlmapApi.SqlMapApi;
 import sqlmapApi.SqlMapApiClient;
-import ui.panel.subPanel.GlobalConfig;
+import ui.panel.subPanel.CommandLineManagerPanel;
 import ui.panel.subPanel.SqlMapServiceTabPanel;
 import ui.panel.subPanel.TaskHistory;
 
@@ -15,26 +13,22 @@ import java.util.List;
 
 public class ConsoleTab extends JTabbedPane {
     TaskHistory taskHistory;
-    GlobalConfig globalConfig;
+    CommandLineManagerPanel commandLineManagerPanel;
     SqlMapServiceTabPanel sqlMapServiceTabPanel;
 
     public ConsoleTab() {
         taskHistory = new TaskHistory();
-        globalConfig = new GlobalConfig();
+        commandLineManagerPanel = new CommandLineManagerPanel();
         sqlMapServiceTabPanel = new SqlMapServiceTabPanel();
 
 
         add("任务列表", taskHistory);
-        add("配置", globalConfig);
+        add("命令行参数列表", commandLineManagerPanel);
         add("后台服务", sqlMapServiceTabPanel);
 
         setComponentAt(0, taskHistory);
-        setComponentAt(1, globalConfig);
+        setComponentAt(1, commandLineManagerPanel);
         setComponentAt(2, sqlMapServiceTabPanel);
-    }
-
-    public void addNewScanTask(ScanTask scanTask) {
-        taskHistory.addNewScanTask(scanTask);
     }
 
     public TaskHistory getTaskHistory() {
@@ -45,28 +39,24 @@ public class ConsoleTab extends JTabbedPane {
         return taskHistory.getScanTaskTableModel();
     }
 
-    public int addNewScanTask(IHttpRequestResponse httpRequestResponse, String taskName, String taskId) {
-        return taskHistory.addNewScanTask(httpRequestResponse, taskName, taskId);
-    }
-
-    public int getNewScanTaskId() {
-        return taskHistory.getNewScanTaskId();
+    public int addNewScanTask(IHttpRequestResponse httpRequestResponse, String taskName, String taskId, String cmdLine) {
+        return taskHistory.addNewScanTask(httpRequestResponse, taskName, taskId, cmdLine);
     }
 
 
-    public List<ScanTaskOptionsCommandLine> getScanTaskArgsList() {
-        return globalConfig.getScanTaskArgsList();
+    public List<OptionsCommandLine> getOptionsCommandLineList() {
+        return commandLineManagerPanel.getOptionsCommandLineList();
     }
 
     public SqlMapServiceTabPanel getSqlMapServiceTabPanel() {
         return sqlMapServiceTabPanel;
     }
 
-    public SqlMapApi getSqlMapApi() {
-        return sqlMapServiceTabPanel.getSqlMapApi();
-    }
-
     public SqlMapApiClient getSqlMapApiClient() {
         return sqlMapServiceTabPanel.getSqlMapApiClient();
+    }
+
+    public CommandLineManagerPanel getcommandLineManagerPanel() {
+        return commandLineManagerPanel;
     }
 }

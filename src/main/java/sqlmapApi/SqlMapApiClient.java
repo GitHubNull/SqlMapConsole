@@ -19,14 +19,14 @@ import java.io.IOException;
 import static utils.GlobalStaticsVar.TASK_ID_INDEX_MAP_QUEUE;
 
 public class SqlMapApiClient {
-    SqlMapApiImpl sqlMapApi;
+    sqlmapApi.SqlMapApiImpl sqlMapApiImpl;
 
-    public SqlMapApiClient(SqlMapApiImpl sqlMapApi) {
-        this.sqlMapApi = sqlMapApi;
+    public SqlMapApiClient(sqlmapApi.SqlMapApiImpl sqlMapApiImpl) {
+        this.sqlMapApiImpl = sqlMapApiImpl;
     }
 
     public Call genScanTaskId() {
-        return sqlMapApi.taskNew();
+        return sqlMapApiImpl.taskNew();
     }
 
     public Call addScanTask(String taskId, ScanOptions scanOptions) {
@@ -34,7 +34,7 @@ public class SqlMapApiClient {
             return null;
         }
 
-        return sqlMapApi.scanStart(taskId, scanOptions);
+        return sqlMapApiImpl.scanStart(taskId, scanOptions);
     }
 
     public synchronized void startScanTask(String taskName, String commandLineStr, IHttpRequestResponse httpRequestResponse) throws IOException {
@@ -64,7 +64,7 @@ public class SqlMapApiClient {
                     }
 
 
-                    ScanOptions scanOptions = null;
+                    ScanOptions scanOptions;
                     try {
                         scanOptions = ScanOptionsHelper.CommandLine2ScanOptions(finalCommandLineStr);
                     } catch (IllegalAccessException ex) {
@@ -101,7 +101,7 @@ public class SqlMapApiClient {
                         public void onResponse(@NotNull Call call, @NotNull Response response) {
 
                             // add new row to history panel
-                            int id = BurpExtender.addScanTaskToTaskHistory(httpRequestResponse, taskName, taskNewResponse.getTaskid());
+                            int id = BurpExtender.addScanTaskToTaskHistory(httpRequestResponse, taskName, taskNewResponse.getTaskid(), finalCommandLineStr);
                             if (-1 == id) {
                                 return;
                             }
@@ -124,38 +124,30 @@ public class SqlMapApiClient {
         if (null == taskId || taskId.trim().isEmpty()) {
             return null;
         }
-        return sqlMapApi.taskDelete(taskId);
+        return sqlMapApiImpl.taskDelete(taskId);
     }
 
     public Call stopScanTask(String taskId) {
         if (null == taskId || taskId.trim().isEmpty()) {
             return null;
         }
-        return sqlMapApi.scanStop(taskId);
+        return sqlMapApiImpl.scanStop(taskId);
     }
 
     public Call killScanTask(String taskId) {
         if (null == taskId || taskId.trim().isEmpty()) {
             return null;
         }
-        return sqlMapApi.scanKill(taskId);
+        return sqlMapApiImpl.scanKill(taskId);
     }
 
-
-    public Call updateScanTask(String taskId, ScanOptions scanOptions) {
-        if ((null == taskId || taskId.trim().isEmpty()) || (null == scanOptions)) {
-            return null;
-        }
-
-        return sqlMapApi.scanStart(taskId, scanOptions);
-    }
 
     public Call getScanTaskStatus(String taskId) {
         if (null == taskId || taskId.trim().isEmpty()) {
             return null;
         }
 
-        return sqlMapApi.scanStatus(taskId);
+        return sqlMapApiImpl.scanStatus(taskId);
     }
 
     public Call getScanTaskData(String taskId) {
@@ -163,7 +155,7 @@ public class SqlMapApiClient {
             return null;
         }
 
-        return sqlMapApi.scanData(taskId);
+        return sqlMapApiImpl.scanData(taskId);
     }
 
 
@@ -172,15 +164,7 @@ public class SqlMapApiClient {
             return null;
         }
 
-        return sqlMapApi.scanLog(taskId);
-    }
-
-    public Call getScanTaskLogRange(String taskId, int startIndex, int endIndex) {
-        if (null == taskId || taskId.trim().isEmpty()) {
-            return null;
-        }
-
-        return sqlMapApi.scanLogRange(taskId, startIndex, endIndex);
+        return sqlMapApiImpl.scanLog(taskId);
     }
 
 }

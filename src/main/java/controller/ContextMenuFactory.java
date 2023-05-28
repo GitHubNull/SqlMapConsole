@@ -4,8 +4,6 @@ import burp.BurpExtender;
 import burp.IContextMenuFactory;
 import burp.IContextMenuInvocation;
 import burp.IHttpRequestResponse;
-import okhttp3.Call;
-import sqlmapApi.requestsBody.ScanOptions;
 import ui.component.ScanTaskConfigLevel1;
 import ui.component.ScanTaskConfigLevel2;
 import ui.component.ScanTaskConfigLevel3;
@@ -75,10 +73,6 @@ public class ContextMenuFactory implements IContextMenuFactory {
         return menuItemList;
     }
 
-    public Call addScanTask(ScanOptions scanOptions) {
-        return null;
-    }
-
     private void initActionListening(IContextMenuInvocation contextMenuInvocation, JMenuItem scanConfigLevel0MenuItem,
                                      JMenuItem scanConfigLevel1MenuItem, JMenuItem scanConfigLevel2MenuItem,
                                      JMenuItem scanConfigLevel3MenuItem, JMenuItem scanConfigLevel4MenuItem) {
@@ -86,7 +80,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         scanConfigLevel0MenuItem.addActionListener(e -> {
             // do something
-//            BurpExtender.stdout.println("scanConfigLevel0MenuItem.addActionListener action triger....");
+//            BurpExtender.stdout.println("scanConfigLevel0MenuItem.addActionListener action trigger....");
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 String taskName = MyStringUtil.genTaskName();
                 String scanTaskCommandLineStr = "-threads 5";

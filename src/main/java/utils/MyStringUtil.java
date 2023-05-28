@@ -1,5 +1,11 @@
 package utils;
 
+import burp.BurpExtender;
+import sqlmapApi.requestsBody.ScanOptions;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
@@ -15,11 +21,7 @@ public class MyStringUtil {
             return false;
         }
 
-        if ("0".equals(numberStr.substring(0, 1))) {
-            return false;
-        }
-
-        return true;
+        return !"0".equals(numberStr.substring(0, 1));
 
     }
 
@@ -29,22 +31,14 @@ public class MyStringUtil {
         }
 
         int number = Integer.parseInt(portStr);
-        if (0 >= number || number >= 65535) {
-            return false;
-        }
-
-        return true;
+        return 0 < number && number < 65535;
     }
 
     public static String getDateTimeStr(int type) {
-        switch (type) {
-            case 0:
-                return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            case 1:
-                return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-            default:
-                return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        if (type == 1) {
+            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
         }
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
     }
 
@@ -54,12 +48,70 @@ public class MyStringUtil {
     }
 
 
-//    public static void main(String[] args) {
-//        String numberStr = "1234";
-//        if (isTruePortNumber(numberStr)){
-//            System.out.println("------------");;
-//        }
-//
-//    }
+    public static String genScanOptionsHelpText() {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("<!DOCTYPE html>\n" +
+                "<head>\n" +
+                "    <style>\n" +
+                "        .keyword {\n" +
+                "            font-weight: bold; \n" +
+                "            background-color: rgb(217, 204, 19);\n" +
+                "        }\n" +
+                "\n" +
+                "        .default_value {\n" +
+                "            font-weight: bold; \n" +
+                "            background-color: rgba(95, 242, 3, 0.799);\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "\n" +
+                "<body>\n" +
+                "    <ol>");
+
+
+        ScanOptions scanOptions = new ScanOptions();
+
+        //获取实体类 返回的是一个数组 数组的数据就是实体类中的字段
+        Field[] fields = scanOptions.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            String fieldName = field.getName();
+            Class<?> classes = field.getType();
+
+            String firstLetter = fieldName.substring(0, 1).toUpperCase();
+            String getter = "get" + firstLetter + fieldName.substring(1);
+
+            Object value;
+            try {
+                Method method = scanOptions.getClass().getMethod(getter);
+                value = method.invoke(scanOptions);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException exception) {
+                BurpExtender.stderr.println(exception.getMessage());
+                continue;
+            }
+
+            String tmp = String.format("<li><b><span class=\"keyword\">%s</span></b></li>\n", fieldName);
+
+
+            if (classes.equals(String.class) && null != value) {
+                tmp = String.format("<li><b><span class=\"keyword\">%s</span></b> default value: <span class=\"default_value\">%s</span></li>\n", fieldName, value);
+            } else if (classes.equals(Boolean.class) && null != value) {
+                tmp = String.format("<li><b><span class=\"keyword\">%s</span></b> default value: <span class=\"default_value\">%b</span></li>\n", fieldName, value);
+            } else if (classes.equals(Integer.class) && null != value) {
+                tmp = String.format("<li><b><span class=\"keyword\">%s</span></b> default value: <span class=\"default_value\">%d</span></li>\n", fieldName, (Integer) value);
+            }
+            stringBuilder.append(tmp);
+        }
+
+        stringBuilder.append("    </ol>\n" +
+                "</body>\n" +
+                "\n" +
+                "</html>");
+
+        return stringBuilder.toString();
+    }
 
 }

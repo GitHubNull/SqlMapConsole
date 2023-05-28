@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Autocomplete implements DocumentListener {
 
-    private static enum Mode {
+    private enum Mode {
         INSERT,
         COMPLETION
     }
@@ -51,6 +51,7 @@ public class Autocomplete implements DocumentListener {
         // Find where the word starts
         int w;
         for (w = pos; w >= 0; w--) {
+            assert content != null;
             if (!Character.isLetter(content.charAt(w))) {
                 break;
             }
@@ -87,7 +88,7 @@ public class Autocomplete implements DocumentListener {
         public void actionPerformed(ActionEvent ev) {
             if (mode == Mode.COMPLETION) {
                 int pos = textField.getSelectionEnd();
-                StringBuffer sb = new StringBuffer(textField.getText());
+                StringBuilder sb = new StringBuilder(textField.getText());
                 sb.insert(pos, " ");
                 textField.setText(sb.toString());
                 textField.setCaretPosition(pos + 1);
@@ -108,7 +109,7 @@ public class Autocomplete implements DocumentListener {
         }
 
         public void run() {
-            StringBuffer sb = new StringBuffer(textField.getText());
+            StringBuilder sb = new StringBuilder(textField.getText());
             sb.insert(position, completion);
             textField.setText(sb.toString());
             textField.setCaretPosition(position + completion.length());

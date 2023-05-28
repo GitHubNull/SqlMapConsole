@@ -1,13 +1,13 @@
 package entities;
 
-public enum ScanTaskArgsColumnName {
+public enum CommandLineColumnName {
     ID("序号"),
     TAG("标签"),
-    ARGS_STR("参数(s)字符串");
+    COMMAND_LINE_STR("参数(s)字符串");
 
     private final String text;
 
-    ScanTaskArgsColumnName(final String text) {
+    CommandLineColumnName(final String text) {
         this.text = text;
     }
 

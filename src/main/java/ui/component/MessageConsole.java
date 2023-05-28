@@ -32,7 +32,7 @@ public class MessageConsole {
     }
 
     /*
-     *	Use the text component specified as a simply console to display
+     *	Use the text component specified as a simple console to display
      *  text messages.
      *
      *  The messages can either be appended to the end of the console or
@@ -188,7 +188,7 @@ public class MessageConsole {
 
         /*
          *  The message and the newLine have been added to the buffer in the
-         *  appropriate order so we can now update the Document and send the
+         *  appropriate order, so we can now update the Document and send the
          *  text to the optional PrintStream.
          */
         private void clearBuffer() {

@@ -6,6 +6,7 @@ public enum ScanTaskStatus {
     FINISHED("扫描完毕"),
 
     STOPPED("暂停"),
+    KILLED("已被杀掉"),
     ERROR("错误");
 
     private final String text;

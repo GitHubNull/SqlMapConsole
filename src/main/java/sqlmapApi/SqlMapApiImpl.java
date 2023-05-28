@@ -35,10 +35,6 @@ public class SqlMapApiImpl implements SqlMapApi {
     @Override
     public Call taskNew() {
         String apiPath = "/task/new";
-//        String apiUrl = genApiUrl(apiPath);
-//        Request.Builder requestBuilder = new Request.Builder().url(apiUrl);
-//        requestBuilder.method("GET",null);
-//        Request request = requestBuilder.build();
         return client.newCall(buildRequest(apiPath, "GET", null));
     }
 
@@ -106,19 +102,19 @@ public class SqlMapApiImpl implements SqlMapApi {
 
     @Override
     public Call optionList(String taskId) {
-        String apiPath = String.format("/option/%/list", taskId);
+        String apiPath = String.format("/option/%s/list", taskId);
         return client.newCall(buildRequest(apiPath, "GET", null));
     }
 
     @Override
     public Call optionGet(String taskId) {
-        String apiPath = String.format("/option/%/get", taskId);
+        String apiPath = String.format("/option/%s/get", taskId);
         return client.newCall(buildRequest(apiPath, "GET", null));
     }
 
     @Override
     public Call optionSet(String taskId) {
-        String apiPath = String.format("/option/%/set", taskId);
+        String apiPath = String.format("/option/%s/set", taskId);
         return client.newCall(buildRequest(apiPath, "GET", null));
     }
 }
