@@ -3,6 +3,7 @@ package ui.component;
 import burp.BurpExtender;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -27,14 +28,18 @@ public class ScanResultShowDialog extends JDialog {
         setLayout(new BorderLayout());
         this.taskId = taskId;
 
+
         payloadTextArea = new JTextArea();
         payloadTextArea.setEditable(false);
-        add(new JScrollPane(payloadTextArea), BorderLayout.NORTH);
+        JScrollPane payloadPanel = new JScrollPane(payloadTextArea);
 
         logsTextArea = new JTextArea();
         logsTextArea.setEditable(false);
+        JScrollPane logsPanel = new JScrollPane(logsTextArea);
 
-        add(new JScrollPane(logsTextArea), BorderLayout.CENTER);
+        JSplitPane resultPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, payloadPanel, logsPanel);
+
+        add(resultPanel, BorderLayout.CENTER);
 
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
@@ -45,9 +50,9 @@ public class ScanResultShowDialog extends JDialog {
 
         add(southPanel, BorderLayout.SOUTH);
 
-        pack();
         setSize(getPreferredSize());
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
 
         getScanResult();
     }
@@ -59,6 +64,10 @@ public class ScanResultShowDialog extends JDialog {
         }
 
         Call taskDataCall = sqlMapApiClient.getScanTaskData(taskId);
+        if (null == taskDataCall) {
+            return;
+        }
+
         taskDataCall.enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -79,15 +88,19 @@ public class ScanResultShowDialog extends JDialog {
 
                 JSONObject jsonObject = JSONObject.parseObject(bodyText);
                 JSONArray data = jsonObject.getJSONArray("data");
-                if (null == data) {
+                if (null == data || data.isEmpty()) {
                     return;
                 }
 
-                payloadTextArea.setText(data.toJSONString());
+                payloadTextArea.setText(data.toJSONString(JSONWriter.Feature.PrettyFormat));
             }
         });
 
         Call taskLogsCall = sqlMapApiClient.getScanTaskLog(taskId);
+        if (null == taskLogsCall) {
+            return;
+        }
+
         taskLogsCall.enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -108,11 +121,11 @@ public class ScanResultShowDialog extends JDialog {
 
                 JSONObject jsonObject = JSONObject.parseObject(bodyText);
                 JSONArray data = jsonObject.getJSONArray("log");
-                if (null == data) {
+                if (null == data || data.isEmpty()) {
                     return;
                 }
 
-                logsTextArea.setText(data.toJSONString());
+                logsTextArea.setText(data.toJSONString(JSONWriter.Feature.PrettyFormat));
             }
         });
 

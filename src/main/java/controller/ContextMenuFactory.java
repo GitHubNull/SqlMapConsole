@@ -45,22 +45,22 @@ public class ContextMenuFactory implements IContextMenuFactory {
             return menuItemList;
         }
 
-        JMenuItem scanConfigLevel0MenuItem = new JMenuItem("startSqlMapScanConfigLevel0");
-        JMenuItem scanConfigLevel1MenuItem = new JMenuItem("startSqlMapScanConfigLevel1");
-        JMenuItem scanConfigLevel2MenuItem = new JMenuItem("startSqlMapScanConfigLevel2");
-        JMenuItem scanConfigLevel3MenuItem = new JMenuItem("startSqlMapScanConfigLevel3");
-        JMenuItem scanConfigLevel4MenuItem = new JMenuItem("startSqlMapScanConfigLevel4");
+        JMenuItem scanConfigLevel_0 = new JMenuItem("[sqlIC-0]");
+        JMenuItem scanConfigLevel_1 = new JMenuItem("[sqlIC-1]");
+        JMenuItem scanConfigLevel_2 = new JMenuItem("[sqlIC-2]");
+        JMenuItem scanConfigLevel_3 = new JMenuItem("[sqlIC-3]");
+        JMenuItem scanConfigLevel_4 = new JMenuItem("[sqlIC-4]");
 
 
-        initActionListening(contextMenuInvocation, scanConfigLevel0MenuItem, scanConfigLevel1MenuItem,
-                scanConfigLevel2MenuItem, scanConfigLevel3MenuItem, scanConfigLevel4MenuItem);
+        initActionListening(contextMenuInvocation, scanConfigLevel_0, scanConfigLevel_1,
+                scanConfigLevel_2, scanConfigLevel_3, scanConfigLevel_4);
 
 
-        menuItemList.add(scanConfigLevel0MenuItem);
-        menuItemList.add(scanConfigLevel1MenuItem);
-        menuItemList.add(scanConfigLevel2MenuItem);
-        menuItemList.add(scanConfigLevel3MenuItem);
-        menuItemList.add(scanConfigLevel4MenuItem);
+        menuItemList.add(scanConfigLevel_0);
+        menuItemList.add(scanConfigLevel_1);
+        menuItemList.add(scanConfigLevel_2);
+        menuItemList.add(scanConfigLevel_3);
+        menuItemList.add(scanConfigLevel_4);
 
         for (JMenuItem menuItem : menuItemList) {
             menuItem.setEnabled(!stopFlag);
@@ -73,14 +73,12 @@ public class ContextMenuFactory implements IContextMenuFactory {
         return menuItemList;
     }
 
-    private void initActionListening(IContextMenuInvocation contextMenuInvocation, JMenuItem scanConfigLevel0MenuItem,
-                                     JMenuItem scanConfigLevel1MenuItem, JMenuItem scanConfigLevel2MenuItem,
-                                     JMenuItem scanConfigLevel3MenuItem, JMenuItem scanConfigLevel4MenuItem) {
+    private void initActionListening(IContextMenuInvocation contextMenuInvocation, JMenuItem scanConfigLevel_0,
+                                     JMenuItem scanConfigLevel_1, JMenuItem scanConfigLevel_2,
+                                     JMenuItem scanConfigLevel_3, JMenuItem scanConfigLevel_4) {
         IHttpRequestResponse[] httpRequestResponses = contextMenuInvocation.getSelectedMessages();
 
-        scanConfigLevel0MenuItem.addActionListener(e -> {
-            // do something
-//            BurpExtender.stdout.println("scanConfigLevel0MenuItem.addActionListener action trigger....");
+        scanConfigLevel_0.addActionListener(e -> {
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 String taskName = MyStringUtil.genTaskName();
                 String scanTaskCommandLineStr = "-threads 5";
@@ -94,7 +92,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         });
 
-        scanConfigLevel1MenuItem.addActionListener(e -> {
+        scanConfigLevel_1.addActionListener(e -> {
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 ScanTaskConfigLevel1 scanTaskConfigLevel1 = new ScanTaskConfigLevel1(httpRequestResponse);
                 scanTaskConfigLevel1.setVisible(true);
@@ -102,7 +100,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         });
 
-        scanConfigLevel2MenuItem.addActionListener(e -> {
+        scanConfigLevel_2.addActionListener(e -> {
 
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 ScanTaskConfigLevel2 scanTaskConfigLevel2 = new ScanTaskConfigLevel2(httpRequestResponse);
@@ -112,7 +110,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         });
 
-        scanConfigLevel3MenuItem.addActionListener(e -> {
+        scanConfigLevel_3.addActionListener(e -> {
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 ScanTaskConfigLevel3 scanTaskConfigLevel3 = new ScanTaskConfigLevel3(httpRequestResponse);
                 scanTaskConfigLevel3.setScanTaskArgsList(BurpExtender.getScanTaskArgsListFromTaskArgPanel());
@@ -121,7 +119,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         });
 
-        scanConfigLevel4MenuItem.addActionListener(e -> {
+        scanConfigLevel_4.addActionListener(e -> {
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 ScanTaskConfigLevel4 scanTaskConfigLevel4 = new ScanTaskConfigLevel4(httpRequestResponse);
                 scanTaskConfigLevel4.setScanTaskArgsList(BurpExtender.getScanTaskArgsListFromTaskArgPanel());

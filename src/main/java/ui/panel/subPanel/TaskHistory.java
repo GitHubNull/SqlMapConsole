@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import sqlmapApi.SqlMapApiClient;
 import sqlmapApi.responsesBody.ScanKillResponse;
 import sqlmapApi.responsesBody.ScanStopResponse;
-import sqlmapApi.responsesBody.TaskDeleteResponse;
 import ui.component.ScanResultShowDialog;
 import ui.component.ScanTaskEditorDialog;
 
@@ -381,6 +380,7 @@ public class TaskHistory extends JPanel {
                 }
 
                 try {
+                    scanTaskTableModel.updateScanTaskScanTaskStatusById(scanTask.getId(), ScanTaskStatus.Not_STARTED);
                     sqlMapApiClient.startScanTask(scanTask.getName(), scanTask.getCmdLine(), scanTask.getRequestResponse());
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
@@ -530,8 +530,13 @@ public class TaskHistory extends JPanel {
 
             for (int selectRow : selectRows) {
                 ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRow);
+                scanTaskTableModel.deleteScanTask(scanTask);
 
                 Call call = sqlMapApiClient.deleteScanTask(scanTask.getTaskId());
+                if (null == call) {
+                    continue;
+                }
+
                 call.enqueue(new Callback() {
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -539,23 +544,10 @@ public class TaskHistory extends JPanel {
                     }
 
                     @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                        ResponseBody responseBody = response.body();
-                        if (null == responseBody) {
-                            return;
-                        }
-
-                        String bodyStr = responseBody.string();
-                        if (bodyStr.trim().isEmpty()) {
-                            return;
-                        }
-
-                        TaskDeleteResponse taskDeleteResponse = JSON.parseObject(bodyStr, TaskDeleteResponse.class);
-                        if (taskDeleteResponse.getSuccess()) {
-                            scanTaskTableModel.deleteScanTask(scanTask);
-                        }
+                    public void onResponse(@NotNull Call call, @NotNull Response response) {
                     }
                 });
+
             }
         });
 
@@ -644,8 +636,10 @@ public class TaskHistory extends JPanel {
 
         int id = scanTaskTableModel.getNewScanTaskId();
         scanTask.setId(id);
+        scanTask.setTaskId(taskId);
 
         scanTask.setName(taskName);
+        scanTask.setCmdLine(cmdLine);
 
         scanTask.setRequestResponse(httpRequestResponse);
 

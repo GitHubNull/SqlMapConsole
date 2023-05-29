@@ -524,12 +524,10 @@ public class ScanOptions {
     private Boolean api = true; // default value true
 
 
-    @Builder.Default
-    private String taskid = "b65dd9496ba03e0c"; // default value b65dd9496ba03e0c
+    private String taskid; // default value b65dd9496ba03e0c
 
 
-    @Builder.Default
-    private String database = "C:\\Users\\wangg\\AppData\\Local\\Temp\\sqlmapipc-4_tty95h"; // default value C:\Users\wangg\AppData\Local\Temp\sqlmapipc-4_tty95h
+    private String database; // default value C:\Users\wangg\AppData\Local\Temp\sqlmapipc-4_tty95h
 
 
 }

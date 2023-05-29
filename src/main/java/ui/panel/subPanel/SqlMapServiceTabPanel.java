@@ -643,7 +643,7 @@ public class SqlMapServiceTabPanel extends JPanel {
 
                 JSONObject scanDataPre = JSON.parseObject(body);
                 JSONArray scanData = (JSONArray) scanDataPre.get("data");
-                if (null == scanData) {
+                if (null == scanData || scanData.isEmpty()) {
                     BurpExtender.getScanTaskTableModel().updateScanTaskScanTaskInjectedById(taskId2TaskIndexMap.getTaskIndex(), Injected.NO);
                 } else {
                     BurpExtender.getScanTaskTableModel().updateScanTaskScanTaskInjectedById(taskId2TaskIndexMap.getTaskIndex(), Injected.YES);
