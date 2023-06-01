@@ -28,8 +28,6 @@ public class SqlMapApiService {
             cmdLine = new String[]{PYTHON_EXEC_PATH, "-u", SQLMAP_API_PATH, "-s", "-p", Integer.toString(SQLMAP_API_PORT)};
         }
 
-        String tmp = String.join(",", cmdLine);
-        BurpExtender.stdout.println(String.format("SqlMapApiService.start() cmdLine: %s", tmp));
         ProcessBuilder processBuilder = new ProcessBuilder(cmdLine);
         sqlmapApiSubProcess = processBuilder.start();
 

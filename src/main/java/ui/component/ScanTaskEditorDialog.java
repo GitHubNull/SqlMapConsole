@@ -10,7 +10,7 @@ import utils.GlobalStaticsVar;
 import javax.swing.*;
 import java.awt.*;
 
-public class ScanTaskEditorDialog extends JDialog {
+public class ScanTaskEditorDialog extends JFrame {
     ScanTask scanTask;
 
     JPanel commandLinePanel;
@@ -40,7 +40,8 @@ public class ScanTaskEditorDialog extends JDialog {
 
         commandLineLabel = new JLabel("命令行参数");
 
-        commandLineTextField = new JTextField("", 64);
+        commandLineTextField = new JTextField(scanTask.getCmdLine(), 64);
+        commandLineTextField.setCaretPosition(scanTask.getCmdLine().length());
         commandLineTextField.setFocusTraversalKeysEnabled(false);
         Autocomplete autoComplete = new Autocomplete(commandLineTextField, GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS);
         commandLineTextField.getDocument().addDocumentListener(autoComplete);
@@ -58,7 +59,7 @@ public class ScanTaskEditorDialog extends JDialog {
         responseMessageEditor = BurpExtender.callbacks.createMessageEditor(new MessageEditorController(), false);
         responseMessageEditor.setMessage(scanTask.getRequestResponse().getResponse(), false);
 
-        messageEditorView = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, requestMessageEditor.getComponent(),
+        messageEditorView = new JSplitPane(JSplitPane.VERTICAL_SPLIT, requestMessageEditor.getComponent(),
                 responseMessageEditor.getComponent());
 
         add(messageEditorView, BorderLayout.CENTER);
@@ -72,11 +73,11 @@ public class ScanTaskEditorDialog extends JDialog {
         buttonPanel.add(okBtn);
         buttonPanel.add(cancelBtn);
 
-        add(buttonPanel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         pack();
         setSize(getPreferredSize());
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         initActionListeners();

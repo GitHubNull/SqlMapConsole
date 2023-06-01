@@ -8,11 +8,13 @@ import java.io.Serializable;
 public class OptionsCommandLine implements Comparable<OptionsCommandLine>, Serializable {
     private final static long serialVersionUID = 1;
     int id;
+    Boolean wasDefault;
     String tag;
     String commandLineStr;
 
-    public OptionsCommandLine(int id, String tag, String commandLineStr) {
+    public OptionsCommandLine(int id, String tag, String commandLineStr, Boolean wasDefault) {
         this.id = id;
+        this.wasDefault = wasDefault;
         this.tag = tag;
         this.commandLineStr = commandLineStr;
     }

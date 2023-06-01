@@ -13,6 +13,7 @@ import utils.MyStringUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static utils.GlobalStaticsVar.COMMIT_ACTION;
@@ -53,6 +54,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
     JPanel commandLineOperationPanel;
     JButton addBtn;
     JButton useBtn;
+    JButton refBtn;
     JButton addAndOkBtn;
 
 
@@ -145,9 +147,11 @@ public class ScanTaskConfigLevel4 extends JFrame {
         commandLineOperationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         addBtn = new JButton("添加");
         useBtn = new JButton("使用");
+        refBtn = new JButton("引用");
         addAndOkBtn = new JButton("添加并使用");
         commandLineOperationPanel.add(addBtn);
         commandLineOperationPanel.add(useBtn);
+        commandLineOperationPanel.add(refBtn);
         commandLineOperationPanel.add(addAndOkBtn);
 
         southArgsContainer.add(commandLineTagPanel, BorderLayout.NORTH);
@@ -247,12 +251,71 @@ public class ScanTaskConfigLevel4 extends JFrame {
 //                setVisible(false);
         });
 
-        useBtn.addActionListener(e -> dispose());
+        useBtn.addActionListener(e -> {
+            String taskName = taskNameTextField.getText();
+            if (null == taskName || taskName.trim().isEmpty()) {
+                dispose();
+                return;
+            }
+
+            String commandLineTextFieldText = commandLineTextFiled.getText();
+
+            if ((null == commandLineTextFieldText || commandLineTextFieldText.trim().isEmpty())) {
+                dispose();
+                return;
+            }
+
+            byte[] httpBytesData = requestMessageEditor.getMessage();
+            httpRequestResponse.setRequest(httpBytesData);
+
+
+            try {
+                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
+            } catch (IOException ex) {
+                BurpExtender.stderr.println(ex.getMessage());
+//                throw new RuntimeException(ex);
+            }
+
+
+            dispose();
+        });
+
+        refBtn.addActionListener(e -> {
+            if (0 == commandLineTableModel.getRowCount()) {
+                return;
+            }
+
+            int[] selectedRows = table.getSelectedRows();
+            if (null == selectedRows || 1 != selectedRows.length) {
+                return;
+            }
+
+            OptionsCommandLine optionsCommandLine = commandLineTableModel.getOptionsCommandLineById(selectedRows[0]);
+            if (null == optionsCommandLine) {
+                return;
+            }
+
+            String cmdLineStr = optionsCommandLine.getCommandLineStr();
+            if (null == cmdLineStr || cmdLineStr.trim().isEmpty()) {
+                return;
+            }
+
+            commandLineTextFiled.setText(cmdLineStr);
+            commandLineTextFiled.setCaretPosition(cmdLineStr.length());
+
+        });
 
 
     }
 
     public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
-        commandLineTableModel.setScanTaskArgsList(optionsCommandLineList);
+        List<OptionsCommandLine> refOptionsCommandLineList = new ArrayList<>();
+        for (OptionsCommandLine optionsCommandLine : optionsCommandLineList) {
+            OptionsCommandLine refOptionsCommandLine = new OptionsCommandLine(optionsCommandLine.getId(),
+                    optionsCommandLine.getTag(), optionsCommandLine.getCommandLineStr(), false);
+
+            refOptionsCommandLineList.add(refOptionsCommandLine);
+        }
+        commandLineTableModel.setScanTaskArgsList(refOptionsCommandLineList);
     }
 }

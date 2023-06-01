@@ -8,6 +8,7 @@ import ui.component.ScanTaskConfigLevel1;
 import ui.component.ScanTaskConfigLevel2;
 import ui.component.ScanTaskConfigLevel3;
 import ui.component.ScanTaskConfigLevel4;
+import utils.GlobalStaticsVar;
 import utils.MyStringUtil;
 
 import javax.swing.*;
@@ -82,11 +83,16 @@ public class ContextMenuFactory implements IContextMenuFactory {
             for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
                 String taskName = MyStringUtil.genTaskName();
                 String scanTaskCommandLineStr = "-threads 5";
+                if (!GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR.trim().isEmpty()) {
+
+                    scanTaskCommandLineStr = GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR.trim();
+                }
+
                 try {
                     BurpExtender.startScanTask(taskName, scanTaskCommandLineStr, httpRequestResponse);
                 } catch (IOException ex) {
                     BurpExtender.stderr.println(ex.getMessage());
-//                    throw new RuntimeException(ex);
+                    throw new RuntimeException(ex);
                 }
             }
 

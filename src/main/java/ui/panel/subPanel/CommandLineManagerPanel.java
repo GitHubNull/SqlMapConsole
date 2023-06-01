@@ -44,6 +44,7 @@ public class CommandLineManagerPanel extends JPanel {
     JComboBox<String> filterComboBox;
     JTextField filterTextField;
     JButton filterBtn;
+    JButton configDefaultBtn;
 
     JScrollPane centerPanel;
     JTable table;
@@ -115,11 +116,13 @@ public class CommandLineManagerPanel extends JPanel {
         filterTextField = new JTextField("", 64);
 
         filterBtn = new JButton("过滤");
+        configDefaultBtn = new JButton("设为默认命令行参数");
 
         filterPanel.add(filterLabel);
         filterPanel.add(filterComboBox);
         filterPanel.add(filterTextField);
         filterPanel.add(filterBtn);
+        filterPanel.add(configDefaultBtn);
 
         northPanel.add(filterPanel, BorderLayout.SOUTH);
 
@@ -220,6 +223,31 @@ public class CommandLineManagerPanel extends JPanel {
         });
 
         filterBtn.addActionListener(this::actionPerformed);
+
+        configDefaultBtn.addActionListener(e -> {
+            if (0 == tableModel.getRowCount()) {
+                return;
+            }
+            int[] rows = table.getSelectedRows();
+            if (null == rows || 1 != rows.length) {
+                return;
+            }
+
+            int row = rows[0];
+
+            OptionsCommandLine optionsCommandLine = tableModel.getOptionsCommandLineById(row);
+            if (null == optionsCommandLine) {
+                return;
+            }
+
+            String cmdLineStr = optionsCommandLine.getCommandLineStr();
+            if (null == cmdLineStr || cmdLineStr.trim().isEmpty()) {
+                return;
+            }
+
+            GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = cmdLineStr;
+            tableModel.updateWasDefaultById(row, Boolean.TRUE);
+        });
     }
 
     private void initCenterBtnActionListening() {
@@ -230,7 +258,8 @@ public class CommandLineManagerPanel extends JPanel {
 
                 int col = table.getSelectedColumn();
 
-                if (0 == tableModel.getRowCount() || 0 != col) {
+
+                if (CommandLineColumnNameIndex.ID_INDEX == tableModel.getRowCount()) {
                     return;
                 }
 
@@ -244,10 +273,52 @@ public class CommandLineManagerPanel extends JPanel {
                     return;
                 }
 
-                // 弹出参数详情
-                CommandLineEditorDialog commandLineEditorDialog = new CommandLineEditorDialog(tableModel, selectRows[0], false);
-                commandLineEditorDialog.setVisible(true);
+                if (0 == col) {
+                    // 弹出参数详情
+                    CommandLineEditorDialog commandLineEditorDialog = new CommandLineEditorDialog(tableModel, selectRows[0], false);
+                    commandLineEditorDialog.setVisible(true);
+                }
+
             }
+        });
+
+        tableModel.addTableModelListener(e -> {
+            int col = e.getColumn();
+            if (CommandLineColumnNameIndex.WAS_DEFAULT_INDEX != col) {
+                return;
+            }
+
+            int row = e.getFirstRow();
+            OptionsCommandLine optionsCommandLine0 = tableModel.getOptionsCommandLineById(row);
+            if (Boolean.FALSE.equals(optionsCommandLine0.getWasDefault())) {
+                int cnt = 0;
+                for (int i = 0; i < tableModel.getRowCount(); i++) {
+                    if (Boolean.FALSE.equals(tableModel.getOptionsCommandLineById(i).getWasDefault())) {
+                        cnt++;
+                    }
+                }
+                if (cnt == tableModel.getRowCount()) {
+                    GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = "";
+                }
+
+                return;
+            }
+
+            String cmdLine = optionsCommandLine0.getCommandLineStr();
+            if (null != cmdLine && !cmdLine.trim().isEmpty()) {
+                GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = cmdLine;
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                for (int i = 0; i < tableModel.getRowCount(); i++) {
+                    if (i != row) {
+                        OptionsCommandLine optionsCommandLine = tableModel.getOptionsCommandLineById(i);
+                        optionsCommandLine.setWasDefault(Boolean.FALSE);
+                        tableModel.fireTableCellUpdated(i, col);
+                    }
+                }
+            });
+
         });
     }
 

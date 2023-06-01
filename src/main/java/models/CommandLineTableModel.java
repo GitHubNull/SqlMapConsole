@@ -1,6 +1,7 @@
 package models;
 
 import entities.CommandLineColumnName;
+import entities.CommandLineColumnNameIndex;
 import entities.OptionsCommandLine;
 
 import javax.swing.*;
@@ -10,7 +11,7 @@ import java.util.List;
 
 public class CommandLineTableModel extends AbstractTableModel {
     List<OptionsCommandLine> optionsCommandLineList = new ArrayList<>();
-    static final int STATIC_COLUMN_COUNT = 3;
+    static final int STATIC_COLUMN_COUNT = 4;
 
     public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
         this.optionsCommandLineList = optionsCommandLineList;
@@ -34,11 +35,13 @@ public class CommandLineTableModel extends AbstractTableModel {
 
         OptionsCommandLine optionsCommandLine = optionsCommandLineList.get(rowIndex);
         switch (columnIndex) {
-            case 0:
+            case CommandLineColumnNameIndex.ID_INDEX:
                 return optionsCommandLine.getId();
-            case 1:
+            case CommandLineColumnNameIndex.WAS_DEFAULT_INDEX:
+                return optionsCommandLine.getWasDefault();
+            case CommandLineColumnNameIndex.TAG_INDEX:
                 return optionsCommandLine.getTag();
-            case 2:
+            case 3:
                 return optionsCommandLine.getCommandLineStr();
             default:
                 return null;
@@ -52,11 +55,13 @@ public class CommandLineTableModel extends AbstractTableModel {
         }
 
         switch (column) {
-            case 0:
+            case CommandLineColumnNameIndex.ID_INDEX:
                 return CommandLineColumnName.ID.toString();
-            case 1:
+            case CommandLineColumnNameIndex.WAS_DEFAULT_INDEX:
+                return CommandLineColumnName.WAS_DEFAULT.toString();
+            case CommandLineColumnNameIndex.TAG_INDEX:
                 return CommandLineColumnName.TAG.toString();
-            case 2:
+            case CommandLineColumnNameIndex.COMMAND_LINE_STR_INDEX:
                 return CommandLineColumnName.COMMAND_LINE_STR.toString();
 
             default:
@@ -74,7 +79,9 @@ public class CommandLineTableModel extends AbstractTableModel {
             case 0:
                 return Integer.class;
             case 1:
+                return Boolean.class;
             case 2:
+            case 3:
                 return String.class;
             default:
                 return null;
@@ -94,13 +101,19 @@ public class CommandLineTableModel extends AbstractTableModel {
 
         OptionsCommandLine optionsCommandLine = optionsCommandLineList.get(row);
         switch (col) {
-            case 1:
+            case CommandLineColumnNameIndex.WAS_DEFAULT_INDEX:
+                SwingUtilities.invokeLater(() -> {
+                    optionsCommandLine.setWasDefault((Boolean) obj);
+                    fireTableCellUpdated(row, col);
+                });
+                break;
+            case CommandLineColumnNameIndex.TAG_INDEX:
                 SwingUtilities.invokeLater(() -> {
                     optionsCommandLine.setTag((String) obj);
                     fireTableCellUpdated(row, col);
                 });
                 break;
-            case 2:
+            case CommandLineColumnNameIndex.COMMAND_LINE_STR_INDEX:
                 SwingUtilities.invokeLater(() -> {
                     optionsCommandLine.setCommandLineStr((String) obj);
                     fireTableCellUpdated(row, col);
@@ -126,7 +139,7 @@ public class CommandLineTableModel extends AbstractTableModel {
     public void addOptionsCommandLine(String tag, String argsStr) {
         SwingUtilities.invokeLater(() -> {
             int id = optionsCommandLineList.size();
-            optionsCommandLineList.add(new OptionsCommandLine(id, tag, argsStr));
+            optionsCommandLineList.add(new OptionsCommandLine(id, tag, argsStr, false));
             fireTableRowsInserted(id, id);
         });
     }
@@ -142,6 +155,18 @@ public class CommandLineTableModel extends AbstractTableModel {
         });
     }
 
+    public void updateWasDefaultById(int id, Boolean wasDefault) {
+        if (0 == optionsCommandLineList.size() || (0 > id || id >= optionsCommandLineList.size())) {
+            return;
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            optionsCommandLineList.get(id).setWasDefault(wasDefault);
+            fireTableCellUpdated(id, 1);
+        });
+
+    }
+
     public void updateTagById(int id, String tag) {
         if (0 == optionsCommandLineList.size() || (0 > id || id >= optionsCommandLineList.size()) || (null == tag || tag.trim().isEmpty())) {
             return;
@@ -149,7 +174,7 @@ public class CommandLineTableModel extends AbstractTableModel {
 
         SwingUtilities.invokeLater(() -> {
             optionsCommandLineList.get(id).setTag(tag.trim());
-            fireTableCellUpdated(id, 1);
+            fireTableCellUpdated(id, 2);
         });
 
     }
@@ -161,7 +186,7 @@ public class CommandLineTableModel extends AbstractTableModel {
 
         SwingUtilities.invokeLater(() -> {
             optionsCommandLineList.get(id).setCommandLineStr(commandLineStr);
-            fireTableCellUpdated(id, 2);
+            fireTableCellUpdated(id, 3);
         });
     }
 

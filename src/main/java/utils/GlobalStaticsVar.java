@@ -39,6 +39,7 @@ public class GlobalStaticsVar {
     public final static String EXTENDER_CONFIG_SEPARATOR = "/";
 
     public final static String COMMAND_LINES_STR_VAR = "command_lines_str";
+    public static String DEFAULT_COMMAND_LINE_STR = "-threads 5"; // default_command_line_str
 
     static {
         STR_TO_SCAN_TASK_STATUS_MAP.put("not running", ScanTaskStatus.Not_STARTED);

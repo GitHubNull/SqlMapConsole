@@ -153,10 +153,17 @@ public class BurpExtender implements IBurpExtender, ITab, IExtensionStateListene
 
         String[] objectStrArray = tmp.split(GlobalStaticsVar.EXTENDER_CONFIG_SEPARATOR);
 
+        boolean configDefaultFlag = false;
         for (String objectStr : objectStrArray) {
             try {
-//                stdout.println(String.format("objectStr: %s", objectStr));
                 OptionsCommandLine optionsCommandLine = SerializeUtil.deserialize(objectStr);
+                if (null == optionsCommandLine) {
+                    continue;
+                }
+                if (!configDefaultFlag && Boolean.TRUE.equals(optionsCommandLine.getWasDefault())) {
+                    GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = optionsCommandLine.getCommandLineStr();
+                    configDefaultFlag = true;
+                }
                 consoleTab.getcommandLineManagerPanel().getTableModel().addOptionsCommandLine(optionsCommandLine);
             } catch (Exception e) {
                 stderr.println(e);

@@ -12,10 +12,11 @@ import org.jetbrains.annotations.NotNull;
 import sqlmapApi.SqlMapApiClient;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.IOException;
 
-public class ScanResultShowDialog extends JDialog {
+public class ScanResultShowDialog extends JFrame {
     JTextArea payloadTextArea;
     JTextArea logsTextArea;
 
@@ -32,10 +33,12 @@ public class ScanResultShowDialog extends JDialog {
         payloadTextArea = new JTextArea();
         payloadTextArea.setEditable(false);
         JScrollPane payloadPanel = new JScrollPane(payloadTextArea);
+        payloadPanel.setBorder(new TitledBorder("payloads"));
 
         logsTextArea = new JTextArea();
         logsTextArea.setEditable(false);
         JScrollPane logsPanel = new JScrollPane(logsTextArea);
+        logsPanel.setBorder(new TitledBorder("logs"));
 
         JSplitPane resultPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, payloadPanel, logsPanel);
 
@@ -51,7 +54,7 @@ public class ScanResultShowDialog extends JDialog {
         add(southPanel, BorderLayout.SOUTH);
 
         setSize(getPreferredSize());
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         getScanResult();
@@ -93,6 +96,8 @@ public class ScanResultShowDialog extends JDialog {
                 }
 
                 payloadTextArea.setText(data.toJSONString(JSONWriter.Feature.PrettyFormat));
+                setSize(getPreferredSize());
+                setLocationRelativeTo(null);
             }
         });
 
@@ -126,6 +131,8 @@ public class ScanResultShowDialog extends JDialog {
                 }
 
                 logsTextArea.setText(data.toJSONString(JSONWriter.Feature.PrettyFormat));
+                setSize(getPreferredSize());
+                setLocationRelativeTo(null);
             }
         });
 

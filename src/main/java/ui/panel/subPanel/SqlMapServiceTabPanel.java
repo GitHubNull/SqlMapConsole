@@ -594,8 +594,9 @@ public class SqlMapServiceTabPanel extends JPanel {
 
     // 后台轮询sqlmap api 任务队列的状态
     private void pollingScanTaskQueueStatus() throws InterruptedException {
-        while (null == sqlMapApiClient) Thread.onSpinWait();
-//        ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
+        while (null == sqlMapApiClient) {
+        }
+        ;
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final ScheduledFuture<?> workerHandle = scheduler.scheduleAtFixedRate(this::pollingScanTaskQueueStatusWorker, 3000L, 1000L, TimeUnit.MILLISECONDS);
 

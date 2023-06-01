@@ -11,6 +11,7 @@ import utils.MyStringUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static utils.GlobalStaticsVar.COMMIT_ACTION;
@@ -30,6 +31,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
     JPanel btnPanel;
     JButton useBtn;
+    JButton refBtn;
     JButton addBtn;
     JButton addAndOkBtn;
 
@@ -89,9 +91,11 @@ public class ScanTaskConfigLevel3 extends JFrame {
         btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         addBtn = new JButton("新增");
         useBtn = new JButton("使用");
+        refBtn = new JButton("引用");
         addAndOkBtn = new JButton("新增并使用");
         btnPanel.add(addBtn);
         btnPanel.add(useBtn);
+        btnPanel.add(refBtn);
         btnPanel.add(addAndOkBtn);
 
         northPanel.add(commandLineTagPanel, BorderLayout.NORTH);
@@ -238,10 +242,42 @@ public class ScanTaskConfigLevel3 extends JFrame {
             dispose();
         });
 
+        refBtn.addActionListener(e -> {
+            if (0 == commandLineTableModel.getRowCount()) {
+                return;
+            }
+
+            int[] selectedRows = table.getSelectedRows();
+            if (null == selectedRows || 1 != selectedRows.length) {
+                return;
+            }
+
+            OptionsCommandLine optionsCommandLine = commandLineTableModel.getOptionsCommandLineById(selectedRows[0]);
+            if (null == optionsCommandLine) {
+                return;
+            }
+
+            String cmdLineStr = optionsCommandLine.getCommandLineStr();
+            if (null == cmdLineStr || cmdLineStr.trim().isEmpty()) {
+                return;
+            }
+
+            commandLineTextFiled.setText(cmdLineStr);
+            commandLineTextFiled.setCaretPosition(cmdLineStr.length());
+
+        });
+
 
     }
 
     public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
-        commandLineTableModel.setScanTaskArgsList(optionsCommandLineList);
+        List<OptionsCommandLine> refOptionsCommandLineList = new ArrayList<>();
+        for (OptionsCommandLine optionsCommandLine : optionsCommandLineList) {
+            OptionsCommandLine refOptionsCommandLine = new OptionsCommandLine(optionsCommandLine.getId(),
+                    optionsCommandLine.getTag(), optionsCommandLine.getCommandLineStr(), false);
+
+            refOptionsCommandLineList.add(refOptionsCommandLine);
+        }
+        commandLineTableModel.setScanTaskArgsList(refOptionsCommandLineList);
     }
 }
