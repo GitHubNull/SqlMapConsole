@@ -212,7 +212,7 @@ public class CommandLineTableModel extends AbstractTableModel {
                 EX_MSG.getMsg("tag"),
                 EX_MSG.getMsg("commandLine")};
 
-        SwingUtilities.invokeLater(() -> fireTableStructureChanged());
+        SwingUtilities.invokeLater(this::fireTableStructureChanged);
     }
 
 }
