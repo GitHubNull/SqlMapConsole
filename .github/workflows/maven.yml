@@ -14,24 +14,26 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
 
       # 第一步：下载源码
       - name: Checkout
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
 
       # 第二步：打包构建
-      - name: Build
+      - name: setup jdk
         uses: actions/setup-java@v3
         with:
           java-version: '8'
           distribution: 'temurin'
           cache: maven
-      - run: mvn -B package --file pom.xml
-      - run: mkdir staging && cp target/*full.jar staging
+
+      - name: Build
+        run: mvn -B package --file pom.xml
+
+      - name: staging
+        run: mkdir staging && cp target/*full.jar staging
 
       # 第三步：发布 Release
       - name: Create Release
@@ -44,18 +46,19 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false # 是否是草稿
           prerelease: true # 是否是预发布
+
       # 第四步： 设置 jobs Maven pom 版本环境变量
       - name: Set Release version env variable
         run: |
           echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
       - name: "Build & test"
         run: |
           echo "done!"
 
       # 第五步：上传构建结果到 Release
-      - name: Upload Release Asset
-        id: upload-release
-      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Upload jar release
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: ${{ secrets.TOKEN }}
           automatic_release_tag: ${{ env.RELEASE_VERSION }}
