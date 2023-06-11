@@ -13,7 +13,7 @@ public class ScanOptionsHelper {
             return null;
         }
 
-        Options options = GlobalStaticsVar.SCAN_OPTIONS_PARSER_DATA;
+        Options options = GlobalStaticVariables.SCAN_OPTIONS_PARSER_DATA;
 
         String[] commandLineArgs = commandLine.trim().split(" ");
 

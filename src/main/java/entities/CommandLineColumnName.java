@@ -1,20 +1,19 @@
 package entities;
 
-public enum CommandLineColumnName {
-    ID("序号"),
-    WAS_DEFAULT("是否是默认参数"),
-    TAG("标签"),
+import static utils.GlobalStaticVariables.EX_MSG;
 
-    COMMAND_LINE_STR("参数(s)字符串");
+public final class CommandLineColumnName {
+    public static String ID = EX_MSG.getMsg("index");
+    public static String WAS_DEFAULT = EX_MSG.getMsg("wasDefault");
+    public static String TAG = EX_MSG.getMsg("tag");
 
-    private final String text;
+    public static String COMMAND_LINE = EX_MSG.getMsg("commandLine");
 
-    CommandLineColumnName(final String text) {
-        this.text = text;
-    }
+    public static void updateI18n() {
+        ID = EX_MSG.getMsg("index");
+        WAS_DEFAULT = EX_MSG.getMsg("wasDefault");
+        TAG = EX_MSG.getMsg("tag");
 
-    @Override
-    public String toString() {
-        return text;
+        COMMAND_LINE = EX_MSG.getMsg("commandLine");
     }
 }

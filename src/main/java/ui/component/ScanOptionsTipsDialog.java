@@ -3,6 +3,8 @@ package ui.component;
 import javax.swing.*;
 import java.awt.*;
 
+import static utils.GlobalStaticVariables.EX_MSG;
+
 public class ScanOptionsTipsDialog extends JDialog {
     JTextPane textPane;
 
@@ -10,7 +12,7 @@ public class ScanOptionsTipsDialog extends JDialog {
 
     public ScanOptionsTipsDialog(String text) {
         setLayout(new BorderLayout());
-        setTitle("扫描参数帮助");
+        setTitle(EX_MSG.getMsg("commandLineHelp"));
 
         textPane = new JTextPane();
         textPane.setContentType("text/html; charset=UTF-8");
@@ -20,7 +22,7 @@ public class ScanOptionsTipsDialog extends JDialog {
 
         add(new JScrollPane(textPane), BorderLayout.CENTER);
 
-        closeBtn = new JButton("关闭");
+        closeBtn = new JButton(EX_MSG.getMsg("close"));
 
         closeBtn.addActionListener(e -> dispose());
 

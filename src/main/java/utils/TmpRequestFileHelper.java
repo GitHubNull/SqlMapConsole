@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import static utils.GlobalStaticsVar.TMP_REQUEST_FILE_DIR_PATH;
+import static utils.GlobalStaticVariables.TMP_REQUEST_FILE_DIR_PATH;
 
 public class TmpRequestFileHelper {
 

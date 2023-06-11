@@ -1,15 +1,16 @@
 package ui.component;
 
-import burp.BurpExtender;
 import burp.IHttpRequestResponse;
 import entities.OptionsCommandLine;
+import entities.TaskItem;
 import models.CommandLineTableModel;
 import utils.MyStringUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 import java.util.List;
+
+import static utils.GlobalStaticVariables.*;
 
 public class ScanTaskConfigLevel2 extends JFrame {
     JPanel north;
@@ -28,13 +29,13 @@ public class ScanTaskConfigLevel2 extends JFrame {
     IHttpRequestResponse httpRequestResponse;
 
     public ScanTaskConfigLevel2(IHttpRequestResponse httpRequestResponse) throws HeadlessException {
-        setTitle("简单配置");
+        setTitle(EX_MSG.getMsg("configLevel") + "-" + EX_MSG.getMsg("two"));
         setLayout(new BorderLayout());
         this.httpRequestResponse = httpRequestResponse;
 
 
         north = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        taskNameLabel = new JLabel("任务名");
+        taskNameLabel = new JLabel(EX_MSG.getMsg("taskName"));
         taskNameTextField = new JTextField("task-" + MyStringUtil.getDateTimeStr(0));
         taskNameTextField.setColumns(64);
 
@@ -57,8 +58,8 @@ public class ScanTaskConfigLevel2 extends JFrame {
 
         south = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        okBtn = new JButton("确定");
-        cancelBtn = new JButton("取消");
+        okBtn = new JButton(EX_MSG.getMsg("ok"));
+        cancelBtn = new JButton(EX_MSG.getMsg("cancel"));
 
         south.add(okBtn);
         south.add(cancelBtn);
@@ -102,13 +103,18 @@ public class ScanTaskConfigLevel2 extends JFrame {
 
             commandLineStr = commandLineStr.trim();
 
+            do {
+                if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                    SCAN_TASK_QUEUE.offer(new TaskItem(taskName, commandLineStr, httpRequestResponse));
+                    break;
+                }
+            } while (true);
 
-            try {
-                BurpExtender.startScanTask(taskName, commandLineStr, httpRequestResponse);
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-//                throw new RuntimeException(ex);
-            }
+//            try {
+//                BurpExtender.startScanTask(taskName, commandLineStr, httpRequestResponse);
+//            } catch (IOException ex) {
+//                BurpExtender.stderr.println(ex.getMessage());
+//            }
 
 //            startScanTask(taskName, commandLineStr);
 

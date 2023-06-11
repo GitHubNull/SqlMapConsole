@@ -16,7 +16,7 @@ import utils.TmpRequestFileHelper;
 import javax.swing.*;
 import java.io.IOException;
 
-import static utils.GlobalStaticsVar.TASK_ID_INDEX_MAP_QUEUE;
+import static utils.GlobalStaticVariables.TASK_ID_INDEX_MAP_QUEUE;
 
 public class SqlMapApiClient {
     sqlmapApi.SqlMapApiImpl sqlMapApiImpl;
@@ -42,9 +42,9 @@ public class SqlMapApiClient {
 
         SwingUtilities.invokeLater(() -> {
 
-            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
+//            SqlMapApiClient sqlMapApiClient = BurpExtender.getSqlMapApiClient();
 
-            Call call = sqlMapApiClient.genScanTaskId();
+            Call call = genScanTaskId();
             if (null == call) {
                 return;
             }
@@ -59,6 +59,7 @@ public class SqlMapApiClient {
                 public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                     assert response.body() != null;
                     sqlmapApi.responsesBody.TaskNewResponse taskNewResponse = JSON.parseObject(response.body().string(), TaskNewResponse.class);
+                    response.close();
                     if (!taskNewResponse.getSuccess()) {
                         return;
                     }
@@ -79,14 +80,29 @@ public class SqlMapApiClient {
                     if (null == scanOptions.getRequestFile() || scanOptions.getRequestFile().isEmpty()) {
                         final String tmpRequestFilePath = TmpRequestFileHelper.writeBytesToFile(httpRequestResponse.getRequest());
                         if (null == tmpRequestFilePath) {
-                            sqlMapApiClient.deleteScanTask(taskNewResponse.getTaskid());
+                            Call call1 = deleteScanTask(taskNewResponse.getTaskid());
+                            if (null == call1) {
+                                return;
+                            }
+                            call1.enqueue(new Callback() {
+                                @Override
+                                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                                    System.out.println("delete task failed.");
+                                }
+
+                                @Override
+                                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                                    response.close();
+                                    System.out.println("delete task success.");
+                                }
+                            });
                             return;
                         }
 
                         scanOptions.setRequestFile(tmpRequestFilePath);
                     }
 
-                    Call callIn = sqlMapApiClient.addScanTask(taskNewResponse.getTaskid(), scanOptions);
+                    Call callIn = addScanTask(taskNewResponse.getTaskid(), scanOptions);
                     if (null == callIn) {
                         return;
                     }
@@ -99,7 +115,7 @@ public class SqlMapApiClient {
 
                         @Override
                         public void onResponse(@NotNull Call call, @NotNull Response response) {
-
+                            response.close();
                             // add new row to history panel
                             int id = BurpExtender.addScanTaskToTaskHistory(httpRequestResponse, taskName, taskNewResponse.getTaskid(), finalCommandLineStr);
                             if (-1 == id) {

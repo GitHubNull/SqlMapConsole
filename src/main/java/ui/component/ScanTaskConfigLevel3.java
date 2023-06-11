@@ -1,21 +1,19 @@
 package ui.component;
 
-import burp.BurpExtender;
 import burp.IHttpRequestResponse;
 import entities.CommandLineColumnName;
 import entities.OptionsCommandLine;
+import entities.TaskItem;
 import models.CommandLineTableModel;
 import utils.Autocomplete;
 import utils.MyStringUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static utils.GlobalStaticsVar.COMMIT_ACTION;
-import static utils.GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS;
+import static utils.GlobalStaticVariables.*;
 
 public class ScanTaskConfigLevel3 extends JFrame {
     private final IHttpRequestResponse httpRequestResponse;
@@ -59,7 +57,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
     JButton cancelBtn;
 
     public ScanTaskConfigLevel3(IHttpRequestResponse httpRequestResponse) throws HeadlessException {
-        setTitle("扫描参数配置");
+        setTitle(EX_MSG.getMsg("configLevel") + "-" + EX_MSG.getMsg("three"));
         setLayout(new BorderLayout());
         this.httpRequestResponse = httpRequestResponse;
 
@@ -75,7 +73,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
         commandLineTagPanel.add(commandLineTagTextField);
 
         commandLinePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        commandLineLabel = new JLabel("参数");
+        commandLineLabel = new JLabel(EX_MSG.getMsg("commandLine"));
 
         commandLineTextFiled = new JTextField(64);
         commandLineTextFiled.setFocusTraversalKeysEnabled(false);
@@ -89,10 +87,10 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
 
         btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addBtn = new JButton("新增");
-        useBtn = new JButton("使用");
-        refBtn = new JButton("引用");
-        addAndOkBtn = new JButton("新增并使用");
+        addBtn = new JButton(EX_MSG.getMsg("add"));
+        useBtn = new JButton(EX_MSG.getMsg("useIt"));
+        refBtn = new JButton(EX_MSG.getMsg("reference"));
+        addAndOkBtn = new JButton(EX_MSG.getMsg("addAndUseIt"));
         btnPanel.add(addBtn);
         btnPanel.add(useBtn);
         btnPanel.add(refBtn);
@@ -109,10 +107,10 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
 
         filterPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterColumnSelectionComboBox = new JComboBox<>(new String[]{CommandLineColumnName.TAG.toString(), CommandLineColumnName.COMMAND_LINE_STR.toString()});
-        filterLabel = new JLabel("按照");
+        filterColumnSelectionComboBox = new JComboBox<>(new String[]{CommandLineColumnName.TAG, CommandLineColumnName.COMMAND_LINE});
+        filterLabel = new JLabel(EX_MSG.getMsg("by"));
         filterTextField = new JTextField(64);
-        filterBtn = new JButton("过滤");
+        filterBtn = new JButton(EX_MSG.getMsg("filter"));
 
         filterPane.add(filterLabel);
         filterPane.add(filterColumnSelectionComboBox);
@@ -137,7 +135,7 @@ public class ScanTaskConfigLevel3 extends JFrame {
         southPanel = new JPanel(new BorderLayout());
 
         southTaskNamePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        taskNameLabel = new JLabel("任务名");
+        taskNameLabel = new JLabel(EX_MSG.getMsg("taskName"));
         taskNameTextField = new JTextField("task-" + MyStringUtil.getDateTimeStr(0));
         taskNameTextField.setColumns(64);
 
@@ -150,8 +148,8 @@ public class ScanTaskConfigLevel3 extends JFrame {
         southBtnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
 
-        okBtn = new JButton("确定");
-        cancelBtn = new JButton("取消");
+        okBtn = new JButton(EX_MSG.getMsg("ok"));
+        cancelBtn = new JButton(EX_MSG.getMsg("cancel"));
 
         southBtnPanel.add(okBtn);
         southBtnPanel.add(cancelBtn);
@@ -205,12 +203,18 @@ public class ScanTaskConfigLevel3 extends JFrame {
                 commandLineStr = commandLineTextFieldText;
             }
 
-            try {
-                BurpExtender.startScanTask(taskName, commandLineStr, httpRequestResponse);
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-//                throw new RuntimeException(ex);
-            }
+            do {
+                if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                    SCAN_TASK_QUEUE.offer(new TaskItem(taskName, commandLineStr, httpRequestResponse));
+                    break;
+                }
+            } while (true);
+
+//            try {
+//                BurpExtender.startScanTask(taskName, commandLineStr, httpRequestResponse);
+//            } catch (IOException ex) {
+//                BurpExtender.stderr.println(ex.getMessage());
+//            }
 
             dispose();
         });
@@ -232,12 +236,18 @@ public class ScanTaskConfigLevel3 extends JFrame {
 
             commandLineTextFieldText = commandLineTextFieldText.trim();
 
-            try {
-                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-//                throw new RuntimeException(ex);
-            }
+            do {
+                if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                    SCAN_TASK_QUEUE.offer(new TaskItem(taskName, commandLineTextFieldText, httpRequestResponse));
+                    break;
+                }
+            } while (true);
+
+//            try {
+//                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
+//            } catch (IOException ex) {
+//                BurpExtender.stderr.println(ex.getMessage());
+//            }
 
             dispose();
         });

@@ -1,22 +1,23 @@
 package entities;
 
-public enum ScanTaskStatus {
-    Not_STARTED("未开始"),
-    RUNNING("扫描中"),
-    FINISHED("扫描完毕"),
+import static utils.GlobalStaticVariables.EX_MSG;
 
-    STOPPED("暂停"),
-    KILLED("已被杀掉"),
-    ERROR("错误");
+public class ScanTaskStatus {
+    public static String NOT_STARTED = EX_MSG.getMsg("notStart");
+    public static String RUNNING = EX_MSG.getMsg("scanning");
+    public static String FINISHED = EX_MSG.getMsg("scanTaskFinished");
 
-    private final String text;
+    public static String STOPPED = EX_MSG.getMsg("stopped");
+    public static String KILLED = EX_MSG.getMsg("killed");
+    public static String ERROR = EX_MSG.getMsg("unknownError");
 
-    ScanTaskStatus(final String text) {
-        this.text = text;
-    }
+    public static void updateI18n() {
+        NOT_STARTED = EX_MSG.getMsg("notStart");
+        RUNNING = EX_MSG.getMsg("scanning");
+        FINISHED = EX_MSG.getMsg("scanTaskFinished");
 
-    @Override
-    public String toString() {
-        return text;
+        STOPPED = EX_MSG.getMsg("stopped");
+        KILLED = EX_MSG.getMsg("killed");
+        ERROR = EX_MSG.getMsg("unknownError");
     }
 }

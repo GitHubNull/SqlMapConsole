@@ -5,10 +5,12 @@ import burp.IMessageEditor;
 import controller.MessageEditorController;
 import entities.ScanTask;
 import utils.Autocomplete;
-import utils.GlobalStaticsVar;
+import utils.GlobalStaticVariables;
 
 import javax.swing.*;
 import java.awt.*;
+
+import static utils.GlobalStaticVariables.EX_MSG;
 
 public class ScanTaskEditorDialog extends JFrame {
     ScanTask scanTask;
@@ -33,20 +35,20 @@ public class ScanTaskEditorDialog extends JFrame {
     public ScanTaskEditorDialog(ScanTask scanTask) {
         this.scanTask = scanTask;
 
-        setTitle("扫描任务编辑");
+        setTitle(EX_MSG.getMsg("scanTaskEdit"));
         setLayout(new BorderLayout());
 
         commandLinePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        commandLineLabel = new JLabel("命令行参数");
+        commandLineLabel = new JLabel(EX_MSG.getMsg("commandLine"));
 
         commandLineTextField = new JTextField(scanTask.getCmdLine(), 64);
         commandLineTextField.setCaretPosition(scanTask.getCmdLine().length());
         commandLineTextField.setFocusTraversalKeysEnabled(false);
-        Autocomplete autoComplete = new Autocomplete(commandLineTextField, GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS);
+        Autocomplete autoComplete = new Autocomplete(commandLineTextField, GlobalStaticVariables.SCAN_OPTIONS_KEYWORDS);
         commandLineTextField.getDocument().addDocumentListener(autoComplete);
-        commandLineTextField.getInputMap().put(KeyStroke.getKeyStroke("TAB"), utils.GlobalStaticsVar.COMMIT_ACTION);
-        commandLineTextField.getActionMap().put(utils.GlobalStaticsVar.COMMIT_ACTION, autoComplete.new CommitAction());
+        commandLineTextField.getInputMap().put(KeyStroke.getKeyStroke("TAB"), GlobalStaticVariables.COMMIT_ACTION);
+        commandLineTextField.getActionMap().put(GlobalStaticVariables.COMMIT_ACTION, autoComplete.new CommitAction());
 
         commandLinePanel.add(commandLineLabel);
         commandLinePanel.add(commandLineTextField);
@@ -67,8 +69,8 @@ public class ScanTaskEditorDialog extends JFrame {
 
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        okBtn = new JButton("确定");
-        cancelBtn = new JButton("取消");
+        okBtn = new JButton(EX_MSG.getMsg("ok"));
+        cancelBtn = new JButton(EX_MSG.getMsg("cancel"));
 
         buttonPanel.add(okBtn);
         buttonPanel.add(cancelBtn);

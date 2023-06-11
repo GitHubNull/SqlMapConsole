@@ -8,7 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import static utils.GlobalStaticsVar.*;
+import static utils.GlobalStaticVariables.*;
 
 public class SqlMapApiService {
     Process sqlmapApiSubProcess;
@@ -23,10 +23,12 @@ public class SqlMapApiService {
             return;
         }
 
-        String[] cmdLine = new String[]{"cmd", "/c", PYTHON_EXEC_PATH, "-u", SQLMAP_API_PATH, "-s", "-p", Integer.toString(SQLMAP_API_PORT)};
+        String[] cmdLine = new String[]{PYTHON_EXEC_PATH, "-u", SQLMAP_API_PATH, "-s", "-p", Integer.toString(SQLMAP_API_PORT)};
         if (OSinfo.isMacOS() || OSinfo.isLinux()) {
             cmdLine = new String[]{PYTHON_EXEC_PATH, "-u", SQLMAP_API_PATH, "-s", "-p", Integer.toString(SQLMAP_API_PORT)};
         }
+
+        BurpExtender.debugInfo(String.format("SqlMapApiService.start()cmdLine: %s", String.join(" ", cmdLine)));
 
         ProcessBuilder processBuilder = new ProcessBuilder(cmdLine);
         sqlmapApiSubProcess = processBuilder.start();

@@ -13,8 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static utils.GlobalStaticsVar.OLD_SQLMAPAPI_SUB_PROCESS_KILLED;
-import static utils.GlobalStaticsVar.OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK;
+import static utils.GlobalStaticVariables.OLD_SQLMAPAPI_SUB_PROCESS_KILLED;
+import static utils.GlobalStaticVariables.OLD_SQLMAPAPI_SUB_PROCESS_KILLED_LOCK;
 
 public class WindowsOSKiller {
     int port;

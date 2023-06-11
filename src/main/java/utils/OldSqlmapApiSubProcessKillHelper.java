@@ -1,6 +1,6 @@
 package utils;
 
-import static utils.GlobalStaticsVar.SQLMAP_API_PORT;
+import static utils.GlobalStaticVariables.SQLMAP_API_PORT;
 
 public class OldSqlmapApiSubProcessKillHelper {
 

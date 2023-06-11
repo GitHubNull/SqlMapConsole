@@ -1,16 +1,14 @@
 package ui.component;
 
-import burp.BurpExtender;
 import burp.IHttpRequestResponse;
+import entities.TaskItem;
 import utils.Autocomplete;
 import utils.MyStringUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
-import static utils.GlobalStaticsVar.COMMIT_ACTION;
-import static utils.GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS;
+import static utils.GlobalStaticVariables.*;
 
 public class ScanTaskConfigLevel1 extends JFrame {
     JPanel taskNamePanel;
@@ -28,13 +26,13 @@ public class ScanTaskConfigLevel1 extends JFrame {
     IHttpRequestResponse httpRequestResponse;
 
     public ScanTaskConfigLevel1(IHttpRequestResponse httpRequestResponse) throws HeadlessException {
-        setTitle("config level 1");
+        setTitle(EX_MSG.getMsg("configLevel") + "-" + EX_MSG.getMsg("one"));
         setLayout(new BorderLayout());
         this.httpRequestResponse = httpRequestResponse;
 
         taskNamePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        taskNameLabel = new JLabel("任务名");
+        taskNameLabel = new JLabel(EX_MSG.getMsg("taskName"));
         taskNameTextField = new JTextField("task-" + MyStringUtil.getDateTimeStr(0), 64);
 
         taskNamePanel.add(taskNameLabel);
@@ -44,7 +42,7 @@ public class ScanTaskConfigLevel1 extends JFrame {
 
         commandLinePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        commandLineLabel = new JLabel("参数");
+        commandLineLabel = new JLabel(EX_MSG.getMsg("commandLine"));
 
         commandLineTextFiled = new JTextField("", 64);
 
@@ -61,8 +59,8 @@ public class ScanTaskConfigLevel1 extends JFrame {
 
         btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        okBtn = new JButton("确定");
-        cancelBtn = new JButton("取消");
+        okBtn = new JButton(EX_MSG.getMsg("ok"));
+        cancelBtn = new JButton(EX_MSG.getMsg("cancel"));
 
         btnPanel.add(okBtn);
         btnPanel.add(cancelBtn);
@@ -93,12 +91,12 @@ public class ScanTaskConfigLevel1 extends JFrame {
                 return;
             }
 
-            try {
-                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-//                throw new RuntimeException(ex);
-            }
+            do {
+                if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                    SCAN_TASK_QUEUE.offer(new TaskItem(taskName, commandLineTextFieldText, httpRequestResponse));
+                    break;
+                }
+            } while (true);
 
             dispose();
         });

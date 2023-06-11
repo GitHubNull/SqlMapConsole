@@ -16,6 +16,8 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.IOException;
 
+import static utils.GlobalStaticVariables.EX_MSG;
+
 public class ScanResultShowDialog extends JFrame {
     JTextArea payloadTextArea;
     JTextArea logsTextArea;
@@ -25,7 +27,7 @@ public class ScanResultShowDialog extends JFrame {
     String taskId;
 
     public ScanResultShowDialog(String taskId) {
-        setTitle("扫描结果");
+        setTitle(EX_MSG.getMsg("scanResult"));
         setLayout(new BorderLayout());
         this.taskId = taskId;
 
@@ -33,12 +35,12 @@ public class ScanResultShowDialog extends JFrame {
         payloadTextArea = new JTextArea();
         payloadTextArea.setEditable(false);
         JScrollPane payloadPanel = new JScrollPane(payloadTextArea);
-        payloadPanel.setBorder(new TitledBorder("payloads"));
+        payloadPanel.setBorder(new TitledBorder(EX_MSG.getMsg("payload")));
 
         logsTextArea = new JTextArea();
         logsTextArea.setEditable(false);
         JScrollPane logsPanel = new JScrollPane(logsTextArea);
-        logsPanel.setBorder(new TitledBorder("logs"));
+        logsPanel.setBorder(new TitledBorder(EX_MSG.getMsg("log")));
 
         JSplitPane resultPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, payloadPanel, logsPanel);
 
@@ -46,7 +48,7 @@ public class ScanResultShowDialog extends JFrame {
 
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        closeBtn = new JButton("关闭");
+        closeBtn = new JButton(EX_MSG.getMsg("close"));
         closeBtn.addActionListener(e -> dispose());
 
         southPanel.add(closeBtn);
@@ -81,10 +83,12 @@ public class ScanResultShowDialog extends JFrame {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 ResponseBody body = response.body();
                 if (null == body) {
+                    body.close();
                     return;
                 }
 
                 String bodyText = body.string();
+                body.close();
                 if (bodyText.isEmpty()) {
                     return;
                 }
@@ -116,10 +120,12 @@ public class ScanResultShowDialog extends JFrame {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 ResponseBody body = response.body();
                 if (null == body) {
+                    body.close();
                     return;
                 }
 
                 String bodyText = body.string();
+                body.close();
                 if (bodyText.isEmpty()) {
                     return;
                 }

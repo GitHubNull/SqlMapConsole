@@ -6,6 +6,8 @@ import models.CommandLineTableModel;
 import javax.swing.*;
 import java.awt.*;
 
+import static utils.GlobalStaticVariables.EX_MSG;
+
 public class CommandLineEditorDialog extends JDialog {
     OptionsCommandLine optionsCommandLine;
     CommandLineTableModel commandLineTableModel;
@@ -32,14 +34,14 @@ public class CommandLineEditorDialog extends JDialog {
         setLayout(new BorderLayout());
 
         if (enableEdit) {
-            setTitle("命令行参数编辑");
+            setTitle(EX_MSG.getMsg("commandLineEdit"));
         } else {
-            setTitle("命令行参数详情");
+            setTitle(EX_MSG.getMsg("commandLineDetail"));
         }
 
         tagPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        tagLabel = new JLabel("标签");
+        tagLabel = new JLabel(EX_MSG.getMsg("tag"));
         tagTextField = new JTextField(optionsCommandLine.getTag());
         tagTextField.setEnabled(enableEdit);
 
@@ -50,7 +52,7 @@ public class CommandLineEditorDialog extends JDialog {
 
         commandLinePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        commandLineLabel = new JLabel("命令行参数");
+        commandLineLabel = new JLabel(EX_MSG.getMsg("commandLine"));
         commandLineTextField = new JTextField(optionsCommandLine.getCommandLineStr(), 128);
         commandLineTextField.setEnabled(enableEdit);
 
@@ -61,13 +63,13 @@ public class CommandLineEditorDialog extends JDialog {
 
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        okBtn = new JButton("确定");
+        okBtn = new JButton(EX_MSG.getMsg("ok"));
         okBtn.setEnabled(enableEdit);
 
         if (enableEdit) {
-            cancelBtn = new JButton("取消");
+            cancelBtn = new JButton(EX_MSG.getMsg("cancel"));
         } else {
-            cancelBtn = new JButton("关闭");
+            cancelBtn = new JButton(EX_MSG.getMsg("close"));
         }
 
         buttonPanel.add(okBtn);

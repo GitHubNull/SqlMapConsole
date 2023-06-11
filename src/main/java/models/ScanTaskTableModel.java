@@ -1,24 +1,47 @@
 package models;
 
-import entities.Injected;
 import entities.ScanTask;
-import entities.ScanTaskColumnName;
 import entities.ScanTaskStatus;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static entities.ScanTaskColumnNameIndex.*;
+import static utils.GlobalStaticVariables.EX_MSG;
 
 
 public class ScanTaskTableModel extends AbstractTableModel {
     static final ArrayList<ScanTask> scanTaskArrayList = new ArrayList<>();
+    private ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
     static final int STATIC_COLUMN_COUNT = 13;
+    private static String[] columnNames = new String[]{
+            EX_MSG.getMsg("index"),
+            EX_MSG.getMsg("taskId"),
+            EX_MSG.getMsg("taskName"),
+            EX_MSG.getMsg("method"),
+            EX_MSG.getMsg("host"),
+            EX_MSG.getMsg("port"),
+            EX_MSG.getMsg("url"),
+            EX_MSG.getMsg("status_code"),
+            EX_MSG.getMsg("content_length"),
+            EX_MSG.getMsg("commandLine"),
+            EX_MSG.getMsg("task_status"),
+            EX_MSG.getMsg("injectionStatus"),
+            EX_MSG.getMsg("comment")
+    };
 
     @Override
     public int getRowCount() {
-        return scanTaskArrayList.size();
+        int index;
+        reentrantReadWriteLock.readLock().lock();
+        try {
+            index = scanTaskArrayList.size();
+        } finally {
+            reentrantReadWriteLock.readLock().unlock();
+        }
+        return index;
     }
 
     @Override
@@ -55,9 +78,9 @@ public class ScanTaskTableModel extends AbstractTableModel {
             case CMD_LINE_INDEX:
                 return scanTask.getCmdLine();
             case TASK_STATUS_INDEX:
-                return scanTask.getTaskStatus().toString();
+                return scanTask.getTaskStatus();
             case INJECTED_INDEX:
-                return scanTask.getInjected();
+                return scanTask.getInjectionStatus();
             case COMMENT_INDEX:
                 return scanTask.getComment();
             default:
@@ -71,37 +94,8 @@ public class ScanTaskTableModel extends AbstractTableModel {
         if (0 > column || column >= STATIC_COLUMN_COUNT) {
             return null;
         }
-        switch (column) {
-            case ID_INDEX:
-                return ScanTaskColumnName.ID.toString();
-            case TASK_ID_INDEX:
-                return ScanTaskColumnName.TASK_ID.toString();
-            case NAME_INDEX:
-                return ScanTaskColumnName.NAME.toString();
-            case METHOD_INDEX:
-                return ScanTaskColumnName.METHOD.toString();
-            case HOST_INDEX:
-                return ScanTaskColumnName.HOST.toString();
-            case PORT_INDEX:
-                return ScanTaskColumnName.PORT.toString();
-            case URL_INDEX:
-                return ScanTaskColumnName.URL.toString();
-            case RESPONSE_STATUS_CODE_INDEX:
-                return ScanTaskColumnName.RESPONSE_STATUS_CODE.toString();
-            case RESPONSE_CONTENT_LENGTH_INDEX:
-                return ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString();
-            case CMD_LINE_INDEX:
-                return ScanTaskColumnName.CMD_LINE.toString();
-            case TASK_STATUS_INDEX:
-                return ScanTaskColumnName.TASK_STATUS.toString();
-            case INJECTED_INDEX:
-                return ScanTaskColumnName.INJECTED.toString();
-            case COMMENT_INDEX:
-                return ScanTaskColumnName.COMMENT.toString();
 
-            default:
-                return null;
-        }
+        return columnNames[column];
     }
 
     @Override
@@ -132,14 +126,25 @@ public class ScanTaskTableModel extends AbstractTableModel {
     }
 
     public synchronized void AddNewScanTask(ScanTask scanTask) {
-        scanTaskArrayList.add(scanTask);
+        reentrantReadWriteLock.writeLock().lock();
+        try {
+            scanTaskArrayList.add(scanTask);
+        } finally {
+            reentrantReadWriteLock.writeLock().unlock();
+        }
 
         final int index = scanTaskArrayList.size() - 1;
         SwingUtilities.invokeLater(() -> fireTableRowsInserted(index, index));
     }
 
     public void deleteScanTask(ScanTask scanTask) {
-        scanTaskArrayList.remove(scanTask);
+        reentrantReadWriteLock.writeLock().lock();
+        try {
+            scanTaskArrayList.remove(scanTask);
+        } finally {
+            reentrantReadWriteLock.writeLock().unlock();
+        }
+
         SwingUtilities.invokeLater(this::fireTableDataChanged);
     }
 
@@ -153,33 +158,50 @@ public class ScanTaskTableModel extends AbstractTableModel {
     }
 
     public ScanTask getScanTaskById(int id) {
-        for (ScanTask scanTask : scanTaskArrayList) {
-            if (scanTask.getId() == id) {
-                return scanTask;
+        reentrantReadWriteLock.readLock().lock();
+        try {
+            for (ScanTask scanTask : scanTaskArrayList) {
+                if (scanTask.getId() == id) {
+                    return scanTask;
+                }
             }
+        } finally {
+            reentrantReadWriteLock.readLock().unlock();
         }
         return null;
     }
 
 
-    public void updateScanTaskScanTaskStatusById(int id, ScanTaskStatus scanTaskStatus) {
+    public void updateScanTaskScanTaskStatusById(int id, String scanTaskStatus) {
         if (id < 0 || id >= scanTaskArrayList.size() || null == scanTaskStatus) {
             return;
         }
 
-        SwingUtilities.invokeLater(() -> {
+        reentrantReadWriteLock.writeLock().lock();
+        try {
             scanTaskArrayList.get(id).setTaskStatus(scanTaskStatus);
+        } finally {
+            reentrantReadWriteLock.writeLock().unlock();
+        }
+
+        SwingUtilities.invokeLater(() -> {
             fireTableCellUpdated(id, TASK_STATUS_INDEX);
         });
     }
 
-    public void updateScanTaskScanTaskInjectedById(int index, Injected injected) {
+    public void updateScanTaskScanTaskInjectedById(int index, String injectionStatus) {
         if (scanTaskArrayList.isEmpty() || 0 > index || index == scanTaskArrayList.size()) {
             return;
         }
 
+        reentrantReadWriteLock.writeLock().lock();
+        try {
+            scanTaskArrayList.get(index).setInjectionStatus(injectionStatus);
+        } finally {
+            reentrantReadWriteLock.writeLock().unlock();
+        }
+
         SwingUtilities.invokeLater(() -> {
-            scanTaskArrayList.get(index).setInjected(injected);
             fireTableCellUpdated(index, INJECTED_INDEX);
         });
 
@@ -187,7 +209,38 @@ public class ScanTaskTableModel extends AbstractTableModel {
     }
 
     public int getNewScanTaskId() {
-        return scanTaskArrayList.size();
+        int index;
+        reentrantReadWriteLock.readLock().lock();
+        try {
+            index = scanTaskArrayList.size();
+        } finally {
+            reentrantReadWriteLock.readLock().unlock();
+        }
+        return index;
+    }
+
+    public void updateI18n() {
+        columnNames = new String[]{
+                EX_MSG.getMsg("index"),
+                EX_MSG.getMsg("taskId"),
+                EX_MSG.getMsg("taskName"),
+                EX_MSG.getMsg("method"),
+                EX_MSG.getMsg("host"),
+                EX_MSG.getMsg("port"),
+                EX_MSG.getMsg("url"),
+                EX_MSG.getMsg("status_code"),
+                EX_MSG.getMsg("content_length"),
+                EX_MSG.getMsg("commandLine"),
+                EX_MSG.getMsg("task_status"),
+                EX_MSG.getMsg("injectionStatus"),
+                EX_MSG.getMsg("comment")
+        };
+
+        SwingUtilities.invokeLater(() -> {
+            fireTableStructureChanged();
+        });
+
+
     }
 
 }

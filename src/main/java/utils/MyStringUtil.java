@@ -36,9 +36,9 @@ public class MyStringUtil {
 
     public static String getDateTimeStr(int type) {
         if (type == 1) {
-            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss.SSS"));
         }
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSS"));
 
     }
 

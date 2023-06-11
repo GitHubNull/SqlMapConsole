@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static utils.GlobalStaticsVar.OLD_SQLMAPAPI_SUB_PROCESS_KILLED;
+import static utils.GlobalStaticVariables.OLD_SQLMAPAPI_SUB_PROCESS_KILLED;
 
 public class LinuxOSKiller {
     int port;

@@ -7,9 +7,11 @@ import models.CommandLineTableModel;
 import ui.component.CommandLineEditorDialog;
 import ui.component.ScanOptionsTipsDialog;
 import utils.Autocomplete;
-import utils.GlobalStaticsVar;
+import utils.GlobalStaticVariables;
+import utils.MessageUtil;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,7 +19,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import static utils.GlobalStaticsVar.SCAN_OPTIONS_HELP_TEXT;
+import static utils.GlobalStaticVariables.EX_MSG;
+import static utils.GlobalStaticVariables.SCAN_OPTIONS_HELP_TEXT;
 
 public class CommandLineManagerPanel extends JPanel {
     JPanel northPanel;
@@ -62,13 +65,14 @@ public class CommandLineManagerPanel extends JPanel {
     public CommandLineManagerPanel() {
         setLayout(new BorderLayout());
 
+        MessageUtil messageUtil = EX_MSG;
 
         northPanel = new JPanel(new BorderLayout());
 
         commandLineOperationPanel = new JPanel(new BorderLayout());
 
         tagContainerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        tagLabel = new JLabel("标签");
+        tagLabel = new JLabel(messageUtil.getMsg("tag"));
         tagTextField = new JTextField(32);
         tagContainerPanel.add(tagLabel);
         tagContainerPanel.add(tagTextField);
@@ -76,17 +80,17 @@ public class CommandLineManagerPanel extends JPanel {
         commandLineOperationPanel.add(tagContainerPanel, BorderLayout.NORTH);
 
         commandLineContainerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        commandLineLabel = new JLabel("参数");
+        commandLineLabel = new JLabel(messageUtil.getMsg("commandLine"));
 
         commandLineTextField = new JTextField(64);
         commandLineTextField.setFocusTraversalKeysEnabled(false);
-        Autocomplete autoComplete = new Autocomplete(commandLineTextField, GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS);
+        Autocomplete autoComplete = new Autocomplete(commandLineTextField, GlobalStaticVariables.SCAN_OPTIONS_KEYWORDS);
         commandLineTextField.getDocument().addDocumentListener(autoComplete);
-        commandLineTextField.getInputMap().put(KeyStroke.getKeyStroke("TAB"), utils.GlobalStaticsVar.COMMIT_ACTION);
-        commandLineTextField.getActionMap().put(utils.GlobalStaticsVar.COMMIT_ACTION, autoComplete.new CommitAction());
+        commandLineTextField.getInputMap().put(KeyStroke.getKeyStroke("TAB"), GlobalStaticVariables.COMMIT_ACTION);
+        commandLineTextField.getActionMap().put(GlobalStaticVariables.COMMIT_ACTION, autoComplete.new CommitAction());
 
 
-        scanOptionsHelperBtn = new JButton("参数列表帮助？");
+        scanOptionsHelperBtn = new JButton(messageUtil.getMsg("scanOptionHelper"));
 
         commandLineContainerPanel.add(commandLineLabel);
         commandLineContainerPanel.add(commandLineTextField);
@@ -95,8 +99,8 @@ public class CommandLineManagerPanel extends JPanel {
         commandLineOperationPanel.add(commandLineContainerPanel, BorderLayout.CENTER);
 
         preOperationContainerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addBtn = new JButton("新增");
-        resetBtn = new JButton("重置");
+        addBtn = new JButton(messageUtil.getMsg("add"));
+        resetBtn = new JButton(messageUtil.getMsg("reset"));
         preOperationContainerPanel.add(addBtn);
         preOperationContainerPanel.add(resetBtn);
 
@@ -106,17 +110,17 @@ public class CommandLineManagerPanel extends JPanel {
 
         filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        filterLabel = new JLabel("按照");
+        filterLabel = new JLabel(messageUtil.getMsg("by"));
 
         filterComboBox = new JComboBox<>();
-        filterComboBox.addItem(CommandLineColumnName.ID.toString());
-        filterComboBox.addItem(CommandLineColumnName.TAG.toString());
-        filterComboBox.addItem(CommandLineColumnName.COMMAND_LINE_STR.toString());
+        filterComboBox.addItem(messageUtil.getMsg("index"));
+        filterComboBox.addItem(messageUtil.getMsg("tag"));
+        filterComboBox.addItem(messageUtil.getMsg("commandLine"));
 
         filterTextField = new JTextField("", 64);
 
-        filterBtn = new JButton("过滤");
-        configDefaultBtn = new JButton("设为默认命令行参数");
+        filterBtn = new JButton(messageUtil.getMsg("filter"));
+        configDefaultBtn = new JButton(messageUtil.getMsg("setDefault"));
 
         filterPanel.add(filterLabel);
         filterPanel.add(filterComboBox);
@@ -145,10 +149,10 @@ public class CommandLineManagerPanel extends JPanel {
 
         southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 
-        deleteBtn = new JButton("删除");
-        updateBtn = new JButton("更新");
-        selectAllBtn = new JButton("全选");
-        selectNoneBtn = new JButton("全不选");
+        deleteBtn = new JButton(messageUtil.getMsg("delete"));
+        updateBtn = new JButton(messageUtil.getMsg("update"));
+        selectAllBtn = new JButton(messageUtil.getMsg("selectAll"));
+        selectNoneBtn = new JButton(messageUtil.getMsg("selectNone"));
 
         southPanel.add(deleteBtn);
         southPanel.add(updateBtn);
@@ -178,13 +182,13 @@ public class CommandLineManagerPanel extends JPanel {
             return;
         }
 
-        if (selectedObject.equals(CommandLineColumnName.ID.toString())) {
+        if (selectedObject.equals(CommandLineColumnName.ID)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, CommandLineColumnNameIndex.ID_INDEX));
 
-        } else if (selectedObject.equals(CommandLineColumnName.TAG.toString())) {
+        } else if (selectedObject.equals(CommandLineColumnName.TAG)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, CommandLineColumnNameIndex.TAG_INDEX));
 
-        } else if (selectedObject.equals(CommandLineColumnName.COMMAND_LINE_STR.toString())) {
+        } else if (selectedObject.equals(CommandLineColumnName.COMMAND_LINE)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, CommandLineColumnNameIndex.COMMAND_LINE_STR_INDEX));
 
         } else {
@@ -245,7 +249,7 @@ public class CommandLineManagerPanel extends JPanel {
                 return;
             }
 
-            GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = cmdLineStr;
+            GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR = cmdLineStr;
             tableModel.updateWasDefaultById(row, Boolean.TRUE);
         });
     }
@@ -273,7 +277,7 @@ public class CommandLineManagerPanel extends JPanel {
                     return;
                 }
 
-                if (0 == col) {
+                if (2 == e.getClickCount() && 0 == col) {
                     // 弹出参数详情
                     CommandLineEditorDialog commandLineEditorDialog = new CommandLineEditorDialog(tableModel, selectRows[0], false);
                     commandLineEditorDialog.setVisible(true);
@@ -282,14 +286,27 @@ public class CommandLineManagerPanel extends JPanel {
             }
         });
 
-        tableModel.addTableModelListener(e -> {
+        table.getModel().addTableModelListener(e -> {
             int col = e.getColumn();
-            if (CommandLineColumnNameIndex.WAS_DEFAULT_INDEX != col) {
+            int row = e.getFirstRow();
+            OptionsCommandLine optionsCommandLine0 = tableModel.getOptionsCommandLineById(row);
+
+            if (CommandLineColumnNameIndex.COMMAND_LINE_STR_INDEX == col) {
+
+                if (Boolean.FALSE.equals(optionsCommandLine0.getWasDefault())) {
+                    return;
+                }
+
+                if (TableModelEvent.UPDATE != e.getType()) {
+                    return;
+                }
+
+                GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR = optionsCommandLine0.getCommandLineStr();
+
                 return;
             }
 
-            int row = e.getFirstRow();
-            OptionsCommandLine optionsCommandLine0 = tableModel.getOptionsCommandLineById(row);
+
             if (Boolean.FALSE.equals(optionsCommandLine0.getWasDefault())) {
                 int cnt = 0;
                 for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -298,7 +315,7 @@ public class CommandLineManagerPanel extends JPanel {
                     }
                 }
                 if (cnt == tableModel.getRowCount()) {
-                    GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = "";
+                    GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR = "";
                 }
 
                 return;
@@ -306,7 +323,7 @@ public class CommandLineManagerPanel extends JPanel {
 
             String cmdLine = optionsCommandLine0.getCommandLineStr();
             if (null != cmdLine && !cmdLine.trim().isEmpty()) {
-                GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR = cmdLine;
+                GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR = cmdLine;
             }
 
             SwingUtilities.invokeLater(() -> {
@@ -382,5 +399,41 @@ public class CommandLineManagerPanel extends JPanel {
 
     private void actionPerformed(ActionEvent e) {
         filterTable();
+    }
+
+    public void updateI18n(MessageUtil messageUtil) {
+        // todo reset table columns name or we say headers name
+        GlobalStaticVariables.COMMANDLINE_TABLE_MODEL_COLUMNS_NAME = new String[]{EX_MSG.getMsg("index"),
+                EX_MSG.getMsg("wasDefault"), EX_MSG.getMsg("tag"),
+                EX_MSG.getMsg("commandLine")};
+
+        SwingUtilities.invokeLater(() -> {
+            tableModel.fireTableStructureChanged();
+        });
+
+
+        tagLabel.setText(messageUtil.getMsg("tag"));
+        commandLineLabel.setText(messageUtil.getMsg("commandLine"));
+        scanOptionsHelperBtn.setText(messageUtil.getMsg("scanOptionHelper"));
+
+        addBtn.setText(messageUtil.getMsg("add"));
+        resetBtn.setText(messageUtil.getMsg("reset"));
+
+        filterLabel.setText(messageUtil.getMsg("by"));
+
+        filterComboBox.removeAllItems();
+        filterComboBox.addItem(messageUtil.getMsg("index"));
+        filterComboBox.addItem(messageUtil.getMsg("tag"));
+        filterComboBox.addItem(messageUtil.getMsg("commandLine"));
+
+        filterBtn.setText(messageUtil.getMsg("filter"));
+
+        configDefaultBtn.setText(messageUtil.getMsg("setDefault"));
+
+        deleteBtn.setText(messageUtil.getMsg("delete"));
+        updateBtn.setText(messageUtil.getMsg("update"));
+        selectAllBtn.setText(messageUtil.getMsg("selectAll"));
+        selectNoneBtn.setText(messageUtil.getMsg("selectNone"));
+
     }
 }

@@ -4,20 +4,19 @@ import burp.BurpExtender;
 import burp.IContextMenuFactory;
 import burp.IContextMenuInvocation;
 import burp.IHttpRequestResponse;
+import entities.TaskItem;
 import ui.component.ScanTaskConfigLevel1;
 import ui.component.ScanTaskConfigLevel2;
 import ui.component.ScanTaskConfigLevel3;
 import ui.component.ScanTaskConfigLevel4;
-import utils.GlobalStaticsVar;
+import utils.GlobalStaticVariables;
 import utils.MyStringUtil;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static utils.GlobalStaticsVar.SQLMAPAPI_SERVICE_STOP_FLAG;
-import static utils.GlobalStaticsVar.SQLMAPAPI_SERVICE_STOP_FLAG_LOCK;
+import static utils.GlobalStaticVariables.*;
 
 public class ContextMenuFactory implements IContextMenuFactory {
 //    Set<Byte> allow_menu_in_set = new HashSet<>();
@@ -32,6 +31,13 @@ public class ContextMenuFactory implements IContextMenuFactory {
 
         IHttpRequestResponse[] httpRequestResponses = contextMenuInvocation.getSelectedMessages();
 
+        if (SCAN_TASK_QUEUE_MAX_SIZE < httpRequestResponses.length) {
+            JMenuItem largeThanMax = new JMenuItem(EX_MSG.getMsg("largeThanMax"));
+            largeThanMax.setEnabled(false);
+            menuItemList.add(largeThanMax);
+            return menuItemList;
+        }
+
         boolean stopFlag = false;
         SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().lock();
         try {
@@ -42,7 +48,7 @@ public class ContextMenuFactory implements IContextMenuFactory {
             SQLMAPAPI_SERVICE_STOP_FLAG_LOCK.readLock().unlock();
         }
 
-        if ((null == httpRequestResponses || 0 == httpRequestResponses.length)) { // || 1 != httpRequestResponses.length
+        if (0 == httpRequestResponses.length) { // || 1 != httpRequestResponses.length
             return menuItemList;
         }
 
@@ -80,21 +86,42 @@ public class ContextMenuFactory implements IContextMenuFactory {
         IHttpRequestResponse[] httpRequestResponses = contextMenuInvocation.getSelectedMessages();
 
         scanConfigLevel_0.addActionListener(e -> {
-            for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
-                String taskName = MyStringUtil.genTaskName();
-                String scanTaskCommandLineStr = "-threads 5";
-                if (!GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR.trim().isEmpty()) {
 
-                    scanTaskCommandLineStr = GlobalStaticsVar.DEFAULT_COMMAND_LINE_STR.trim();
-                }
 
-                try {
-                    BurpExtender.startScanTask(taskName, scanTaskCommandLineStr, httpRequestResponse);
-                } catch (IOException ex) {
-                    BurpExtender.stderr.println(ex.getMessage());
-                    throw new RuntimeException(ex);
-                }
+            String taskName = MyStringUtil.genTaskName();
+            String scanTaskCommandLineStr;
+            if (!GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR.trim().isEmpty()) {
+                scanTaskCommandLineStr = GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR.trim();
+            } else {
+                scanTaskCommandLineStr = "-threads 5";
             }
+
+            SwingUtilities.invokeLater(() -> {
+                int index = 0;
+                do {
+                    if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                        SCAN_TASK_QUEUE.offer(new TaskItem(taskName, scanTaskCommandLineStr, httpRequestResponses[index]));
+                        index++;
+                    }
+                } while (index != httpRequestResponses.length);
+            });
+
+//            for (IHttpRequestResponse httpRequestResponse : httpRequestResponses) {
+//
+//                String taskName = MyStringUtil.genTaskName();
+//                String scanTaskCommandLineStr = "-threads 5";
+//                if (!GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR.trim().isEmpty()) {
+//
+//                    scanTaskCommandLineStr = GlobalStaticVariables.DEFAULT_COMMAND_LINE_STR.trim();
+//                }
+//
+//                try {
+//                    BurpExtender.startScanTask(taskName, scanTaskCommandLineStr, httpRequestResponse);
+//                } catch (IOException ex) {
+//                    BurpExtender.stderr.println(ex.getMessage());
+//                    throw new RuntimeException(ex);
+//                }
+//            }
 
         });
 

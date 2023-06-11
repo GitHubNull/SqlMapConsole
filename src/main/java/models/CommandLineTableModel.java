@@ -1,6 +1,5 @@
 package models;
 
-import entities.CommandLineColumnName;
 import entities.CommandLineColumnNameIndex;
 import entities.OptionsCommandLine;
 
@@ -8,6 +7,8 @@ import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
+
+import static utils.GlobalStaticVariables.COMMANDLINE_TABLE_MODEL_COLUMNS_NAME;
 
 public class CommandLineTableModel extends AbstractTableModel {
     List<OptionsCommandLine> optionsCommandLineList = new ArrayList<>();
@@ -54,19 +55,7 @@ public class CommandLineTableModel extends AbstractTableModel {
             return null;
         }
 
-        switch (column) {
-            case CommandLineColumnNameIndex.ID_INDEX:
-                return CommandLineColumnName.ID.toString();
-            case CommandLineColumnNameIndex.WAS_DEFAULT_INDEX:
-                return CommandLineColumnName.WAS_DEFAULT.toString();
-            case CommandLineColumnNameIndex.TAG_INDEX:
-                return CommandLineColumnName.TAG.toString();
-            case CommandLineColumnNameIndex.COMMAND_LINE_STR_INDEX:
-                return CommandLineColumnName.COMMAND_LINE_STR.toString();
-
-            default:
-                return null;
-        }
+        return COMMANDLINE_TABLE_MODEL_COLUMNS_NAME[column];
     }
 
     @Override

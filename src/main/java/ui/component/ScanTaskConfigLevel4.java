@@ -6,18 +6,17 @@ import burp.IMessageEditor;
 import controller.MessageEditorController;
 import entities.CommandLineColumnName;
 import entities.OptionsCommandLine;
+import entities.TaskItem;
 import models.CommandLineTableModel;
 import utils.Autocomplete;
 import utils.MyStringUtil;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static utils.GlobalStaticsVar.COMMIT_ACTION;
-import static utils.GlobalStaticsVar.SCAN_OPTIONS_KEYWORDS;
+import static utils.GlobalStaticVariables.*;
 
 public class ScanTaskConfigLevel4 extends JFrame {
     private final IHttpRequestResponse httpRequestResponse;
@@ -71,7 +70,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
 
 
     public ScanTaskConfigLevel4(IHttpRequestResponse httpRequestResponse) throws HeadlessException {
-        setTitle("配置扫描参数（带标记）");
+        setTitle(EX_MSG.getMsg("configLevel") + "-" + EX_MSG.getMsg("four"));
         setLayout(new BorderLayout());
         this.httpRequestResponse = httpRequestResponse;
 
@@ -91,10 +90,10 @@ public class ScanTaskConfigLevel4 extends JFrame {
         centerPanel = new JPanel(new BorderLayout());
 
         filterPane = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterColumnSelectionComboBox = new JComboBox<>(new String[]{CommandLineColumnName.TAG.toString(), CommandLineColumnName.COMMAND_LINE_STR.toString()});
-        filterLabel = new JLabel("按照");
+        filterColumnSelectionComboBox = new JComboBox<>(new String[]{CommandLineColumnName.TAG, CommandLineColumnName.COMMAND_LINE});
+        filterLabel = new JLabel(EX_MSG.getMsg("by"));
         filterTextField = new JTextField(64);
-        filterBtn = new JButton("过滤");
+        filterBtn = new JButton(EX_MSG.getMsg("filter"));
 
         filterPane.add(filterLabel);
         filterPane.add(filterColumnSelectionComboBox);
@@ -122,7 +121,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
         southArgsContainer = new JPanel(new BorderLayout());
 
         commandLineTagPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        commandLineTagLabel = new JLabel("标签");
+        commandLineTagLabel = new JLabel(EX_MSG.getMsg("tag"));
 
         commandLineTagTextField = new JTextField(MyStringUtil.getDateTimeStr(0));
         commandLineTagTextField.setColumns(64);
@@ -132,7 +131,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
         commandLineTagPanel.add(commandLineTagTextField);
 
         commandLinePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        commandLineLabel = new JLabel("参数");
+        commandLineLabel = new JLabel(EX_MSG.getMsg("commandLine"));
 
         commandLineTextFiled = new JTextField(64);
         commandLineTextFiled.setFocusTraversalKeysEnabled(false);
@@ -145,10 +144,10 @@ public class ScanTaskConfigLevel4 extends JFrame {
         commandLinePanel.add(commandLineTextFiled);
 
         commandLineOperationPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        addBtn = new JButton("添加");
-        useBtn = new JButton("使用");
-        refBtn = new JButton("引用");
-        addAndOkBtn = new JButton("添加并使用");
+        addBtn = new JButton(EX_MSG.getMsg("add"));
+        useBtn = new JButton(EX_MSG.getMsg("useIt"));
+        refBtn = new JButton(EX_MSG.getMsg("reference"));
+        addAndOkBtn = new JButton(EX_MSG.getMsg("addAndUseIt"));
         commandLineOperationPanel.add(addBtn);
         commandLineOperationPanel.add(useBtn);
         commandLineOperationPanel.add(refBtn);
@@ -162,7 +161,7 @@ public class ScanTaskConfigLevel4 extends JFrame {
 
         taskNamePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        taskNameLabel = new JLabel("任务名");
+        taskNameLabel = new JLabel(EX_MSG.getMsg("taskName"));
 
         taskNameTextField = new JTextField("task-" + MyStringUtil.getDateTimeStr(0));
         taskNameTextField.setColumns(64);
@@ -173,8 +172,8 @@ public class ScanTaskConfigLevel4 extends JFrame {
         southPanel.add(taskNamePanel, BorderLayout.CENTER);
 
         operationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        okBtn = new JButton("确定");
-        cancelBtn = new JButton("取消");
+        okBtn = new JButton(EX_MSG.getMsg("ok"));
+        cancelBtn = new JButton(EX_MSG.getMsg("cancel"));
         operationPanel.add(okBtn);
         operationPanel.add(cancelBtn);
 
@@ -233,13 +232,18 @@ public class ScanTaskConfigLevel4 extends JFrame {
             byte[] httpBytesData = requestMessageEditor.getMessage();
             httpRequestResponse.setRequest(httpBytesData);
 
+            do {
+                if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                    SCAN_TASK_QUEUE.offer(new TaskItem(taskName, commandLineStr, httpRequestResponse));
+                    break;
+                }
+            } while (true);
 
-            try {
-                BurpExtender.startScanTask(taskName, commandLineStr, httpRequestResponse);
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-//                throw new RuntimeException(ex);
-            }
+//            try {
+//                BurpExtender.startScanTask(taskName, commandLineStr, httpRequestResponse);
+//            } catch (IOException ex) {
+//                BurpExtender.stderr.println(ex.getMessage());
+//            }
 
 
             dispose();
@@ -269,12 +273,18 @@ public class ScanTaskConfigLevel4 extends JFrame {
             httpRequestResponse.setRequest(httpBytesData);
 
 
-            try {
-                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
-            } catch (IOException ex) {
-                BurpExtender.stderr.println(ex.getMessage());
-//                throw new RuntimeException(ex);
-            }
+            do {
+                if (SCAN_TASK_QUEUE_MAX_SIZE > SCAN_TASK_QUEUE.size()) {
+                    SCAN_TASK_QUEUE.offer(new TaskItem(taskName, commandLineTextFieldText, httpRequestResponse));
+                    break;
+                }
+            } while (true);
+
+//            try {
+//                BurpExtender.startScanTask(taskName, commandLineTextFieldText, httpRequestResponse);
+//            } catch (IOException ex) {
+//                BurpExtender.stderr.println(ex.getMessage());
+//            }
 
 
             dispose();

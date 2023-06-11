@@ -3,6 +3,7 @@ package utils;
 import burp.BurpExtender;
 import entities.ScanTaskStatus;
 import entities.TaskId2TaskIndexMap;
+import entities.TaskItem;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import sqlmapApi.requestsBody.ScanOptions;
@@ -14,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class GlobalStaticsVar {
+public class GlobalStaticVariables {
     public final static String SQLMAP_API_HOST = "127.0.0.1"; // sqlmap_api_host
     public static int SQLMAP_API_PORT = 5678; // sqlmap_api_port
     public static String PYTHON_EXEC_PATH = "E:/dev-tools/python/Python39/python.exe"; // python_exec_path
@@ -23,10 +24,13 @@ public class GlobalStaticsVar {
     public static String TMP_REQUEST_FILE_DIR_PATH = "E:/tmp"; // tmp_Request_File_dir_Path
 
     public static Queue<TaskId2TaskIndexMap> TASK_ID_INDEX_MAP_QUEUE = new ConcurrentLinkedQueue<>(); // task_id_index_map_queue
-    public final static Map<String, ScanTaskStatus> STR_TO_SCAN_TASK_STATUS_MAP = new HashMap<>(); // str_to_scan_task_status_map
+
+    public static Queue<TaskItem> SCAN_TASK_QUEUE = new ConcurrentLinkedQueue<>();
+    public final static int SCAN_TASK_QUEUE_MAX_SIZE = 5;
+    public final static Map<String, String> STR_TO_SCAN_TASK_STATUS_MAP = new HashMap<>(); // str_to_scan_task_status_map
 
     public static final String COMMIT_ACTION = "commit"; // commit_action
-    public static List<String> SCAN_OPTIONS_KEYWORDS = new ArrayList<>(); // scan_options_keywords
+    public final static List<String> SCAN_OPTIONS_KEYWORDS = new ArrayList<>(); // scan_options_keywords
     public static Options SCAN_OPTIONS_PARSER_DATA = new Options(); // scan_options_parser_data
 
     public static boolean SQLMAPAPI_SERVICE_STOP_FLAG = true; // sqlmapapi_service_stop_flag
@@ -40,15 +44,20 @@ public class GlobalStaticsVar {
 
     public final static String COMMAND_LINES_STR_VAR = "command_lines_str";
     public static String DEFAULT_COMMAND_LINE_STR = "-threads 5"; // default_command_line_str
+    public static MessageUtil EX_MSG = new MessageUtil();
+
+    public static String[] COMMANDLINE_TABLE_MODEL_COLUMNS_NAME = new String[]{EX_MSG.getMsg("index"),
+            EX_MSG.getMsg("wasDefault"), EX_MSG.getMsg("tag"),
+            EX_MSG.getMsg("commandLine")};
 
     static {
-        STR_TO_SCAN_TASK_STATUS_MAP.put("not running", ScanTaskStatus.Not_STARTED);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("not running", ScanTaskStatus.NOT_STARTED);
         STR_TO_SCAN_TASK_STATUS_MAP.put("running", ScanTaskStatus.RUNNING);
         STR_TO_SCAN_TASK_STATUS_MAP.put("terminated", ScanTaskStatus.FINISHED);
 
         STR_TO_SCAN_TASK_STATUS_MAP.put("stopped", ScanTaskStatus.STOPPED);
         STR_TO_SCAN_TASK_STATUS_MAP.put("killed", ScanTaskStatus.KILLED);
-        STR_TO_SCAN_TASK_STATUS_MAP.put("error", ScanTaskStatus.ERROR);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("unkonwError", ScanTaskStatus.ERROR);
 
 //        SCAN_OPTIONS = new Options();
 

@@ -25,8 +25,7 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 
-import static utils.GlobalStaticsVar.SQLMAPAPI_SERVICE_STOP_FLAG;
-import static utils.GlobalStaticsVar.SQLMAPAPI_SERVICE_STOP_FLAG_LOCK;
+import static utils.GlobalStaticVariables.*;
 
 public class TaskHistory extends JPanel {
     JPanel northPanel;
@@ -53,8 +52,8 @@ public class TaskHistory extends JPanel {
     TableRowSorter<ScanTaskTableModel> sorter;
 
 
-    final static String REQUEST = "请求";
-    final static String RESPONSE = "响应";
+    final static String REQUEST = EX_MSG.getMsg("request");
+    final static String RESPONSE = EX_MSG.getMsg("response");
 
 
     JPanel messageViewRootContainer;
@@ -70,8 +69,8 @@ public class TaskHistory extends JPanel {
     JPanel messageViewPanelCardContainer;
     CardLayout cardLayout;
 
-    final static String SINGLE_VIEW = "single";
-    final static String DOUBLE_VIEW = "double";
+    final static String SINGLE_VIEW = EX_MSG.getMsg("single");
+    final static String DOUBLE_VIEW = EX_MSG.getMsg("double");
 
 
     JTabbedPane singleMessageView;
@@ -86,7 +85,7 @@ public class TaskHistory extends JPanel {
     IMessageEditor responseMessageEditor;
 
     JPanel southPanel;
-    JLabel statusInfoText;
+    JTextPane statusInfoText;
 
     MessageShowStyle messageShowStyle;
 
@@ -99,40 +98,40 @@ public class TaskHistory extends JPanel {
 
         northPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        filterLabel = new JLabel("按照");
+        filterLabel = new JLabel(EX_MSG.getMsg("by"));
 
         filterColumnSelectionComboBox = new JComboBox<>();
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.ID.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.TASK_ID.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.NAME.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.METHOD.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.HOST.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.PORT.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.URL.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.RESPONSE_STATUS_CODE.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.CMD_LINE.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.TASK_STATUS.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.INJECTED.toString());
-        filterColumnSelectionComboBox.addItem(ScanTaskColumnName.COMMENT.toString());
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("index"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("taskId"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("taskName"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("method"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("host"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("port"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("url"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("status_code"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("content_length"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("commandLine"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("task_status"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("injectionStatus"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("comment"));
 
         filterTextField = new JTextField(32);
-        filterBtn = new JButton("过滤");
+        filterBtn = new JButton(EX_MSG.getMsg("filter"));
 
         northPanel.add(filterLabel);
         northPanel.add(filterColumnSelectionComboBox);
         northPanel.add(filterTextField);
         northPanel.add(filterBtn);
 
-        startTaskBtn = new JButton("开始扫描");
-        stopTaskBtn = new JButton("停止扫描");
-        killTaskBtn = new JButton("杀掉扫描");
+        startTaskBtn = new JButton(EX_MSG.getMsg("startScan"));
+        stopTaskBtn = new JButton(EX_MSG.getMsg("stopScan"));
+        killTaskBtn = new JButton(EX_MSG.getMsg("killScan"));
 
-        deleteTaskBtn = new JButton("删除任务");
-        updateTaskBtn = new JButton("编辑任务");
+        deleteTaskBtn = new JButton(EX_MSG.getMsg("deleteTask"));
+        updateTaskBtn = new JButton(EX_MSG.getMsg("updateTask"));
 
-        selectAllBtn = new JButton("选择全部");
-        selectNoneBtn = new JButton("全不选择");
+        selectAllBtn = new JButton(EX_MSG.getMsg("selectAll"));
+        selectNoneBtn = new JButton(EX_MSG.getMsg("selectNone"));
 
         northPanel.add(startTaskBtn);
         northPanel.add(stopTaskBtn);
@@ -164,9 +163,9 @@ public class TaskHistory extends JPanel {
 
         radioButtonContainer = new JPanel();
         radioButtonContainer.setLayout(new BoxLayout(radioButtonContainer, BoxLayout.LINE_AXIS));
-        left2RightRadioButton = new JRadioButton("左右");
-        top2DownRadioButton = new JRadioButton("上下");
-        singleRadioButton = new JRadioButton("单图");
+        left2RightRadioButton = new JRadioButton(EX_MSG.getMsg("left2Right"));
+        top2DownRadioButton = new JRadioButton(EX_MSG.getMsg("up2Down"));
+        singleRadioButton = new JRadioButton(EX_MSG.getMsg("singleView"));
         radioButtonContainer.add(left2RightRadioButton);
         radioButtonContainer.add(top2DownRadioButton);
         radioButtonContainer.add(singleRadioButton);
@@ -221,14 +220,23 @@ public class TaskHistory extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
 
 
-        southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        statusInfoText = new JLabel("statusInfoText");
-        southPanel.add(statusInfoText);
+//        southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        statusInfoText = new JTextPane();
+        statusInfoText.setText(EX_MSG.getMsg("sqlMapApiStopped"));
+//        southPanel.add(statusInfoText);
 
-        add(southPanel, BorderLayout.SOUTH);
+        add(statusInfoText, BorderLayout.SOUTH);
 
         initActionListeners();
 
+    }
+
+//    public void setStatusInfoTextStr(String statusStr){
+//        statusInfoText.setText(statusStr);
+//    }
+
+    public JTextPane getStatusInfoText() {
+        return statusInfoText;
     }
 
     private void initActionListeners() {
@@ -304,42 +312,42 @@ public class TaskHistory extends JPanel {
             return;
         }
 
-        if (selectedObject.equals(ScanTaskColumnName.ID.toString())) {
+        if (selectedObject.equals(ScanTaskColumnName.ID)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.ID_INDEX));
-        } else if (selectedObject.equals(ScanTaskColumnName.TASK_ID.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.TASK_ID)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.TASK_ID_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.NAME.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.NAME)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.NAME_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.METHOD.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.METHOD)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.METHOD_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.HOST.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.HOST)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.HOST_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.PORT.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.PORT)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.PORT_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.URL.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.URL)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.URL_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.RESPONSE_STATUS_CODE.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.RESPONSE_STATUS_CODE)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.RESPONSE_STATUS_CODE_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.RESPONSE_CONTENT_LENGTH.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.RESPONSE_CONTENT_LENGTH)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.RESPONSE_CONTENT_LENGTH_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.CMD_LINE.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.CMD_LINE)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.CMD_LINE_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.TASK_STATUS.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.TASK_STATUS)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.TASK_STATUS_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.INJECTED.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.INJECT_STATUS)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.INJECTED_INDEX));
 
-        } else if (selectedObject.equals(ScanTaskColumnName.COMMENT.toString())) {
+        } else if (selectedObject.equals(ScanTaskColumnName.COMMENT)) {
             sorter.setRowFilter(RowFilter.regexFilter(filterText, ScanTaskColumnNameIndex.COMMENT_INDEX));
 
         } else {
@@ -380,7 +388,7 @@ public class TaskHistory extends JPanel {
                 }
 
                 try {
-                    scanTaskTableModel.updateScanTaskScanTaskStatusById(scanTask.getId(), ScanTaskStatus.Not_STARTED);
+                    scanTaskTableModel.updateScanTaskScanTaskStatusById(scanTask.getId(), ScanTaskStatus.NOT_STARTED);
                     sqlMapApiClient.startScanTask(scanTask.getName(), scanTask.getCmdLine(), scanTask.getRequestResponse());
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
@@ -429,10 +437,12 @@ public class TaskHistory extends JPanel {
                     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                         ResponseBody responseBody = response.body();
                         if (null == responseBody) {
+                            response.close();
                             return;
                         }
 
                         String bodyStr = responseBody.string();
+                        response.close();
                         if (bodyStr.trim().isEmpty()) {
                             return;
                         }
@@ -488,10 +498,12 @@ public class TaskHistory extends JPanel {
                     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                         ResponseBody responseBody = response.body();
                         if (null == responseBody) {
+                            response.close();
                             return;
                         }
 
                         String bodyStr = responseBody.string();
+                        response.close();
                         if (bodyStr.trim().isEmpty()) {
                             return;
                         }
@@ -545,6 +557,7 @@ public class TaskHistory extends JPanel {
 
                     @Override
                     public void onResponse(@NotNull Call call, @NotNull Response response) {
+                        response.close();
                     }
                 });
 
@@ -609,8 +622,8 @@ public class TaskHistory extends JPanel {
         }
 
         ScanTask scanTask = scanTaskTableModel.getScanTaskById(selectRows[0]);
-        ScanTaskStatus scanTaskStatus = scanTask.getTaskStatus();
-        if (scanTaskStatus.equals(ScanTaskStatus.Not_STARTED)) {
+        String scanTaskStatus = scanTask.getTaskStatus();
+        if (scanTaskStatus.equals(ScanTaskStatus.NOT_STARTED)) {
             return;
         }
 
@@ -692,8 +705,8 @@ public class TaskHistory extends JPanel {
         }
 
 
-        scanTask.setTaskStatus(ScanTaskStatus.Not_STARTED);
-        scanTask.setInjected(Injected.NOT_SURE);
+        scanTask.setTaskStatus(ScanTaskStatus.NOT_STARTED);
+        scanTask.setInjectionStatus(InjectionStatus.NOT_SURE);
 
         scanTask.setScanTaskResultDetail(new ScanTaskResultDetail());
 
@@ -736,5 +749,45 @@ public class TaskHistory extends JPanel {
 
     public ScanTaskTableModel getScanTaskTableModel() {
         return scanTaskTableModel;
+    }
+
+    public void updateI18n() {
+
+        scanTaskTableModel.updateI18n();
+
+        filterLabel.setText(EX_MSG.getMsg("by"));
+
+        filterBtn.setText(EX_MSG.getMsg("filter"));
+
+        startTaskBtn.setText(EX_MSG.getMsg("startScan"));
+        stopTaskBtn.setText(EX_MSG.getMsg("stopScan"));
+        killTaskBtn.setText(EX_MSG.getMsg("killScan"));
+
+        deleteTaskBtn.setText(EX_MSG.getMsg("deleteTask"));
+        updateTaskBtn.setText(EX_MSG.getMsg("updateTask"));
+
+        selectAllBtn.setText(EX_MSG.getMsg("selectAll"));
+        selectNoneBtn.setText(EX_MSG.getMsg("selectNone"));
+
+        scanTaskTableModel.updateI18n();
+
+        left2RightRadioButton.setText(EX_MSG.getMsg("left2Right"));
+        top2DownRadioButton.setText(EX_MSG.getMsg("up2Down"));
+        singleRadioButton.setText(EX_MSG.getMsg("singleView"));
+
+        filterColumnSelectionComboBox.removeAllItems();
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("index"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("taskId"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("taskName"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("method"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("host"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("port"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("url"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("status_code"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("content_length"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("commandLine"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("task_status"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("injectionStatus"));
+        filterColumnSelectionComboBox.addItem(EX_MSG.getMsg("comment"));
     }
 }
