@@ -35,7 +35,7 @@ jobs:
       - name: staging
         run: mkdir staging && cp target/*full.jar staging
 
-      # 第四步： 设置 jobs Maven pom 版本环境变量
+      # 第三步： 设置 jobs Maven pom 版本环境变量
       - name: Set Release version env variable
         run: |
           echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
@@ -44,7 +44,7 @@ jobs:
         run: |
           echo "done!"
 
-      # 第五步：上传构建结果到 Release
+      # 第四步：上传构建结果到 Release
       - name: Upload jar release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
