@@ -307,6 +307,15 @@ public class CommandLineManagerPanel extends JPanel {
             }
 
 
+            if (null == optionsCommandLine0) {
+                return;
+            }
+
+            Boolean tmp = optionsCommandLine0.getWasDefault();
+            if (null == tmp) {
+                return;
+            }
+
             if (Boolean.FALSE.equals(optionsCommandLine0.getWasDefault())) {
                 int cnt = 0;
                 for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -403,13 +412,7 @@ public class CommandLineManagerPanel extends JPanel {
 
     public void updateI18n(MessageUtil messageUtil) {
         // todo reset table columns name or we say headers name
-        GlobalStaticVariables.COMMANDLINE_TABLE_MODEL_COLUMNS_NAME = new String[]{EX_MSG.getMsg("index"),
-                EX_MSG.getMsg("wasDefault"), EX_MSG.getMsg("tag"),
-                EX_MSG.getMsg("commandLine")};
-
-        SwingUtilities.invokeLater(() -> {
-            tableModel.fireTableStructureChanged();
-        });
+        tableModel.updateI18n();
 
 
         tagLabel.setText(messageUtil.getMsg("tag"));

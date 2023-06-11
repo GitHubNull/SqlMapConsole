@@ -46,10 +46,6 @@ public class GlobalStaticVariables {
     public static String DEFAULT_COMMAND_LINE_STR = "-threads 5"; // default_command_line_str
     public static MessageUtil EX_MSG = new MessageUtil();
 
-    public static String[] COMMANDLINE_TABLE_MODEL_COLUMNS_NAME = new String[]{EX_MSG.getMsg("index"),
-            EX_MSG.getMsg("wasDefault"), EX_MSG.getMsg("tag"),
-            EX_MSG.getMsg("commandLine")};
-
     static {
         STR_TO_SCAN_TASK_STATUS_MAP.put("not running", ScanTaskStatus.NOT_STARTED);
         STR_TO_SCAN_TASK_STATUS_MAP.put("running", ScanTaskStatus.RUNNING);
@@ -57,7 +53,7 @@ public class GlobalStaticVariables {
 
         STR_TO_SCAN_TASK_STATUS_MAP.put("stopped", ScanTaskStatus.STOPPED);
         STR_TO_SCAN_TASK_STATUS_MAP.put("killed", ScanTaskStatus.KILLED);
-        STR_TO_SCAN_TASK_STATUS_MAP.put("unkonwError", ScanTaskStatus.ERROR);
+        STR_TO_SCAN_TASK_STATUS_MAP.put("unknownError", ScanTaskStatus.ERROR);
 
 //        SCAN_OPTIONS = new Options();
 

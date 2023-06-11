@@ -8,11 +8,15 @@ import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.List;
 
-import static utils.GlobalStaticVariables.COMMANDLINE_TABLE_MODEL_COLUMNS_NAME;
+import static utils.GlobalStaticVariables.EX_MSG;
 
 public class CommandLineTableModel extends AbstractTableModel {
     List<OptionsCommandLine> optionsCommandLineList = new ArrayList<>();
     static final int STATIC_COLUMN_COUNT = 4;
+
+    private static String[] commandlineColumnsName = new String[]{EX_MSG.getMsg("index"),
+            EX_MSG.getMsg("wasDefault"), EX_MSG.getMsg("tag"),
+            EX_MSG.getMsg("commandLine")};
 
     public void setScanTaskArgsList(List<OptionsCommandLine> optionsCommandLineList) {
         this.optionsCommandLineList = optionsCommandLineList;
@@ -55,7 +59,7 @@ public class CommandLineTableModel extends AbstractTableModel {
             return null;
         }
 
-        return COMMANDLINE_TABLE_MODEL_COLUMNS_NAME[column];
+        return commandlineColumnsName[column];
     }
 
     @Override
@@ -200,5 +204,17 @@ public class CommandLineTableModel extends AbstractTableModel {
         return false;
     }
 
+
+    public void updateI18n() {
+        commandlineColumnsName = new String[]{
+                EX_MSG.getMsg("index"),
+                EX_MSG.getMsg("wasDefault"),
+                EX_MSG.getMsg("tag"),
+                EX_MSG.getMsg("commandLine")};
+
+        SwingUtilities.invokeLater(() -> {
+            fireTableStructureChanged();
+        });
+    }
 
 }
