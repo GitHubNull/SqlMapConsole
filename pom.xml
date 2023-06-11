@@ -6,7 +6,7 @@
 
     <groupId>org.oxff</groupId>
     <artifactId>SqlMapConsole</artifactId>
-    <version>0.0.500</version>
+    <version>0.0.501</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
